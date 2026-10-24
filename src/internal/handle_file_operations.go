@@ -273,9 +273,36 @@ func (m *model) getPasteItemCmd() tea.Cmd {
 	if len(copyItems) == 0 {
 		return nil
 	}
+	return m.getPasteCmdTo(m.getFocusedFilePanel().Location, copyItems, cut)
+}
 
+// getTransferToPanelCmd copies or moves the selected items (or the item under
+// the cursor in browser mode) of the focused panel to the panel at targetIndex,
+// bypassing the clipboard.
+func (m *model) getTransferToPanelCmd(targetIndex int, cut bool) tea.Cmd {
+	if targetIndex >= m.fileModel.PanelCount() || targetIndex == m.fileModel.FocusedPanelIndex {
+		return nil
+	}
+	panel := m.getFocusedFilePanel()
+	var items []string
+	switch {
+	case panel.PanelMode == filepanel.SelectMode:
+		items = panel.GetSelectedLocationsSortedAsVisible()
+	case !panel.Empty():
+		items = []string{panel.GetFocusedItem().Location}
+	}
+	if len(items) == 0 {
+		return nil
+	}
+	targetLocation := m.fileModel.FilePanels[targetIndex].Location
+	if filepath.Clean(targetLocation) == filepath.Clean(panel.Location) {
+		return nil
+	}
+	return m.getPasteCmdTo(targetLocation, items, cut)
+}
+
+func (m *model) getPasteCmdTo(panelLocation string, copyItems []string, cut bool) tea.Cmd {
 	reqID := m.nextIoReqCnt()
-	panelLocation := m.getFocusedFilePanel().Location
 
 	slog.Debug("Submitting pasteItems request", "id", reqID, "items cnt", len(copyItems), "dest", panelLocation)
 	return func() tea.Msg {
@@ -324,7 +351,11 @@ func makePasteProcessor(process processbar.Process,
 		for i, filePath := range items {
 			errMessage := "cut item error"
 			if cut && !isExternalDiskPath(filePath) {
-				err = moveElement(filePath, filepath.Join(panelLocation, filepath.Base(filePath)))
+				var dst string
+				dst, err = renameIfDuplicate(filepath.Join(panelLocation, filepath.Base(filePath)))
+				if err == nil {
+					err = moveElement(filePath, dst)
+				}
 			} else {
 				// TODO : These error cases are hard to test. We have to somehow make the paste operations fail,
 				// which is time consuming and manual. We should test these with automated testcases

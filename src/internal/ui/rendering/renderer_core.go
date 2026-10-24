@@ -58,6 +58,10 @@ func (r *Renderer) SetBorderTitle(title string) {
 	r.border.SetTitle(title)
 }
 
+func (r *Renderer) SetBorderTopRightLabel(label string) {
+	r.border.SetTopRightLabel(label)
+}
+
 func (r *Renderer) SetBorderInfoItems(infoItems ...string) {
 	r.border.SetInfoItems(infoItems...)
 }

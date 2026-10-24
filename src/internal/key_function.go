@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"slices"
+	"strings"
 
 	"github.com/yorukot/superfile/src/internal/common"
 	"github.com/yorukot/superfile/src/internal/ui/filemodel"
@@ -155,11 +156,33 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 	case slices.Contains(common.Hotkeys.OpenCurrentDirectoryWithEditor, msg):
 		return m.openDirectoryWithEditor()
 
+	case m.focusPanel == nonePanelFocus && isPanelTransferKey(msg):
+		idx, cut := panelTransferTarget(msg)
+		return m.getTransferToPanelCmd(idx, cut)
+
 	default:
 		return m.normalAndBrowserModeKey(msg)
 	}
 
 	return nil
+}
+
+const (
+	panelCopyKeys = "1234567890"
+	panelMoveKeys = "!@#$%^&*()" // Shift + number on a US layout
+)
+
+func isPanelTransferKey(msg string) bool {
+	return len(msg) == 1 && strings.Contains(panelCopyKeys+panelMoveKeys, msg)
+}
+
+// panelTransferTarget maps a number key to a zero-based panel index.
+// Shifted keys mean move (cut), plain number keys mean copy.
+func panelTransferTarget(msg string) (int, bool) {
+	if i := strings.Index(panelCopyKeys, msg); i >= 0 {
+		return i, false
+	}
+	return strings.Index(panelMoveKeys, msg), true
 }
 
 func (m *model) normalAndBrowserModeKey(msg string) tea.Cmd {

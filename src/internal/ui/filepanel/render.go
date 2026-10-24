@@ -3,6 +3,7 @@ package filepanel
 import (
 	"fmt"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/yorukot/superfile/src/config/icon"
@@ -20,8 +21,18 @@ import (
   - ii Other things that change too
   - Other panels like clipboard and metadata's content changes too on resize
 */
-func (m *Model) Render(focused bool) string {
+// PanelNumberLabel returns the label shown on the panel's top border for the
+// panel at the given zero-based index: "1".."9", then "0" for the tenth panel.
+func PanelNumberLabel(index int) string {
+	if index < 0 || index > 9 {
+		return ""
+	}
+	return strconv.Itoa((index + 1) % 10)
+}
+
+func (m *Model) Render(focused bool, index int) string {
 	r := ui.FilePanelRenderer(m.height, m.width, focused)
+	r.SetBorderTopRightLabel(PanelNumberLabel(index))
 
 	m.renderTopBar(r)
 	m.renderSearchBar(r)

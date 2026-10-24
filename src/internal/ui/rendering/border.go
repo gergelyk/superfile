@@ -13,6 +13,9 @@ type BorderConfig struct {
 	// The style is overridden with border's style.
 	title string
 
+	// Optional short label at the right end of the top border
+	topRightLabel string
+
 	// Optional info items at the bottom of the border
 	infoItems []string
 
@@ -38,6 +41,10 @@ func NewBorderConfig(height int, width int) BorderConfig {
 
 func (b *BorderConfig) SetTitle(title string) {
 	b.title = ansi.Strip(title)
+}
+
+func (b *BorderConfig) SetTopRightLabel(label string) {
+	b.topRightLabel = ansi.Strip(label)
 }
 
 func (b *BorderConfig) SetInfoItems(infoItems ...string) {
@@ -100,6 +107,18 @@ func (b *BorderConfig) GetBorder(borderStrings lipgloss.Border) lipgloss.Border 
 		// Title alignment is by default Left for now
 		res.Top = margin + borderStrings.MiddleRight + " " + truncatedTitle + " " + borderStrings.MiddleLeft +
 			strings.Repeat(borderStrings.Top, remainingWidth)
+	}
+
+	if b.topRightLabel != "" {
+		right := borderStrings.MiddleRight + " " + b.topRightLabel + " " + borderStrings.MiddleLeft +
+			borderStrings.Top
+		rightWidth := ansi.StringWidth(right)
+		if actualWidth >= rightWidth+minTitleWidth {
+			if b.title == "" || actualWidth < minTitleWidth {
+				res.Top = strings.Repeat(borderStrings.Top, actualWidth)
+			}
+			res.Top = ansi.Truncate(res.Top, actualWidth-rightWidth, "") + right
+		}
 	}
 
 	cnt := len(b.infoItems)

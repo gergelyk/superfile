@@ -228,7 +228,7 @@ func (m *model) validateComponentRender() error {
 
 	for i := range m.fileModel.FilePanels {
 		panel := &m.fileModel.FilePanels[i]
-		panelRender := panel.Render(i == m.fileModel.FocusedPanelIndex)
+		panelRender := panel.Render(i == m.fileModel.FocusedPanelIndex, i)
 		if err := validateRender(panelRender, panel.GetHeight(), panel.GetWidth(), true); err != nil {
 			return fmt.Errorf("file panel %v render validation failed: %w", i, err)
 		}

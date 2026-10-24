@@ -43,6 +43,7 @@ func (msg PasteOperationMsg) ApplyToModel(m *model) tea.Cmd {
 	if (msg.state == processbar.Failed || msg.state == processbar.Successful) && m.clipboard.IsCut() {
 		m.clipboard.Reset(false)
 	}
+	m.fileModel.UpdateFilePanelsIfNeeded(true)
 	return nil
 }
 
