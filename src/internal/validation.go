@@ -48,7 +48,7 @@ func (m *model) validateLayout() error { //nolint:gocognit // cumilation of vali
 	}
 
 	// Check total width calculation consistency
-	if m.fullWidth != m.sidebarModel.GetWidth()+m.fileModel.Width {
+	if m.fullWidth != m.sidebarTotalWidth()+m.fileModel.Width {
 		return fmt.Errorf(
 			"width layout inconsistent: fullWidth=%v, sidebar=%v filemodel=%v",
 			m.fullWidth, m.sidebarModel.GetWidth(), m.fileModel.Width)
@@ -214,7 +214,7 @@ func validateRenderBorderValidations(lines []string) error {
 // validateComponentRender validates render output of all components
 func (m *model) validateComponentRender() error {
 	// Validate sidebar render
-	if common.Config.SidebarWidth > 0 {
+	if m.sidebarVisible() {
 		sidebarRender := m.sidebarRender()
 		if err := validateRender(
 			sidebarRender,
@@ -287,7 +287,7 @@ func (m *model) validateFinalRender() error { //nolint:gocognit // cumilation of
 
 	strippedOut := ansi.Strip(mainRender)
 	lines := strings.Split(strippedOut, "\n")
-	if common.Config.SidebarWidth != 0 {
+	if m.sidebarVisible() {
 		sidebarPos := compPosition{
 			stRow:  0,
 			stCol:  0,
@@ -301,9 +301,7 @@ func (m *model) validateFinalRender() error { //nolint:gocognit // cumilation of
 	}
 
 	filePanelColStart := 0
-	if common.Config.SidebarWidth != 0 {
-		filePanelColStart += common.BorderPadding + common.Config.SidebarWidth
-	}
+	filePanelColStart += m.sidebarTotalWidth()
 	for i := range m.fileModel.FilePanels {
 		panel := &m.fileModel.FilePanels[i]
 		panelPos := compPosition{

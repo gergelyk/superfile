@@ -131,6 +131,10 @@ enable_file_preview_border = false
 # Values recommended to be in 5–20.
 sidebar_width = 20
 
+#-- Auto Hide Sidebar
+# Hide the sidebar while it is not focused. It reappears when you focus it.
+auto_hide_sidebar = false
+
 #-- Sidebar Section Order
 # Order of sidebar sections (valid values: "home", "pinned", "disks")
 # Only enabled sections will be displayed

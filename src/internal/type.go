@@ -58,6 +58,7 @@ type model struct {
 	clipboard       clipboard.Model
 	clipboardWriter func(string) error
 	focusPanel      focusPanelType
+	sidebarShown    bool // sidebar visibility used for the current layout
 
 	// Modals
 	notifyModel     notify.Model

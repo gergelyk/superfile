@@ -103,6 +103,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	panelCmd = m.updateComponentState(msg)
 
 	m.updateModelStateAfterMsg()
+	if m.sidebarShown != m.sidebarVisible() {
+		resizeCmd = tea.Batch(resizeCmd, m.setMainModelDimensions())
+	}
 	filePreviewCmd = m.fileModel.GetFilePreviewCmd(false)
 
 	metadataCmd = m.getMetadataCmd()
@@ -221,11 +224,26 @@ func (m *model) updateComponentDimensions() tea.Cmd {
 	return m.setMainModelDimensions()
 }
 
+// sidebarVisible reports whether the sidebar takes space in the layout
+func (m *model) sidebarVisible() bool {
+	if common.Config.SidebarWidth == 0 {
+		return false
+	}
+	return !common.Config.AutoHideSidebar || m.focusPanel == sidebarFocus
+}
+
+func (m *model) sidebarTotalWidth() int {
+	if !m.sidebarVisible() {
+		return 0
+	}
+	return common.Config.SidebarWidth + common.BorderPadding
+}
+
 func (m *model) setMainModelDimensions() tea.Cmd {
 	fileModelWidth := m.fullWidth
-	if common.Config.SidebarWidth != 0 {
-		fileModelWidth -= common.Config.SidebarWidth + common.BorderPadding
-	}
+	m.sidebarShown = m.sidebarVisible()
+	m.fileModel.SidebarTotalWidth = m.sidebarTotalWidth()
+	fileModelWidth -= m.fileModel.SidebarTotalWidth
 	m.sidebarModel.SetHeight(m.mainPanelHeight + common.BorderPadding)
 	return m.fileModel.SetDimensions(fileModelWidth, m.mainPanelHeight+common.BorderPadding)
 }
@@ -622,9 +640,11 @@ func (m *model) updateRenderForOverlay(finalRender string) string {
 }
 
 func (m *model) mainComponentsRender() string {
-	sidebar := m.sidebarRender()
 	fileModel := m.fileModel.Render()
-	mainPanel := lipgloss.JoinHorizontal(0, sidebar, fileModel)
+	mainPanel := fileModel
+	if m.sidebarVisible() {
+		mainPanel = lipgloss.JoinHorizontal(0, m.sidebarRender(), fileModel)
+	}
 
 	if !m.toggleFooter {
 		return mainPanel

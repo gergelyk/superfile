@@ -74,7 +74,7 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 		},
 		{
 			hotkey:         common.Hotkeys.SplitFilePanel,
-			description:    "Split file panel (open new panel in the directory under cursor, or same directory for files)",
+			description:    "Split file panel (open new panel in the directory under cursor)",
 			hotkeyWorkType: globalType,
 		},
 		{
