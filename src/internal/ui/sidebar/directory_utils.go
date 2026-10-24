@@ -44,11 +44,21 @@ func fuzzySearch(query string, dirs []directory) []directory {
 // getDirectories returns the list of directories to display in the sidebar.
 func getDirectories(pinnedMgr *PinnedManager, sections []string) []directory {
 	return formDirctorySlice(
-		getWellKnownDirectories(),
-		getPinnedDirectoriesWithIcon(pinnedMgr),
-		getExternalMediaFolders(),
+		loadIfEnabled(sections, utils.SidebarSectionHome, getWellKnownDirectories),
+		loadIfEnabled(sections, utils.SidebarSectionPinned, func() []directory {
+			return getPinnedDirectoriesWithIcon(pinnedMgr)
+		}),
+		loadIfEnabled(sections, utils.SidebarSectionDisks, getExternalMediaFolders),
 		sections,
 	)
+}
+
+// loadIfEnabled skips the (possibly slow) lookup for sections that are not displayed.
+func loadIfEnabled(sections []string, section string, load func() []directory) []directory {
+	if !slices.Contains(sections, section) {
+		return nil
+	}
+	return load()
 }
 
 // Return system default directory e.g. Home, Downloads, etc
@@ -91,9 +101,11 @@ func getPinnedDirectoriesWithIcon(pinnedMgr *PinnedManager) []directory {
 // getFilteredDirectories returns a list of directories that match the fuzzy search query across all sections.
 func getFilteredDirectories(query string, pinnedMgr *PinnedManager, sections []string) []directory {
 	return formDirctorySlice(
-		fuzzySearch(query, getWellKnownDirectories()),
-		fuzzySearch(query, getPinnedDirectoriesWithIcon(pinnedMgr)),
-		fuzzySearch(query, getExternalMediaFolders()),
+		fuzzySearch(query, loadIfEnabled(sections, utils.SidebarSectionHome, getWellKnownDirectories)),
+		fuzzySearch(query, loadIfEnabled(sections, utils.SidebarSectionPinned, func() []directory {
+			return getPinnedDirectoriesWithIcon(pinnedMgr)
+		})),
+		fuzzySearch(query, loadIfEnabled(sections, utils.SidebarSectionDisks, getExternalMediaFolders)),
 		sections,
 	)
 }
