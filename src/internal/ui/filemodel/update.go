@@ -13,6 +13,15 @@ import (
 )
 
 func (m *Model) CreateNewFilePanel(location string) (tea.Cmd, error) {
+	return m.createFilePanel(location, true)
+}
+
+// Creates a new panel but keeps the focus on the current one
+func (m *Model) CreateNewFilePanelKeepFocus(location string) (tea.Cmd, error) {
+	return m.createFilePanel(location, false)
+}
+
+func (m *Model) createFilePanel(location string, focusNew bool) (tea.Cmd, error) {
 	if m.PanelCount() >= m.MaxFilePanel {
 		return nil, ErrMaximumPanelCount
 	}
@@ -27,10 +36,12 @@ func (m *Model) CreateNewFilePanel(location string) (tea.Cmd, error) {
 
 	newPanelIndex := m.PanelCount() - 1
 
-	m.FilePanels[m.FocusedPanelIndex].IsFocused = false
-	m.FilePanels[newPanelIndex].IsFocused = true
 	m.FilePanels[newPanelIndex].SetHeight(m.Height)
-	m.FocusedPanelIndex = newPanelIndex
+	if focusNew {
+		m.FilePanels[m.FocusedPanelIndex].IsFocused = false
+		m.FilePanels[newPanelIndex].IsFocused = true
+		m.FocusedPanelIndex = newPanelIndex
+	}
 
 	m.updateChildComponentWidth()
 	return m.ensurePreviewDimensionsSync(), nil

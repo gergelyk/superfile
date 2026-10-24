@@ -459,6 +459,32 @@ func (m *model) splitPanel() (tea.Cmd, error) {
 	return m.createNewFilePanel(m.getFocusedFilePanel().Location)
 }
 
+// Like splitPanel, but opens in the directory under the cursor if there is one,
+// and keeps focus on the current panel
+func (m *model) splitPanelAtCursor() (tea.Cmd, error) {
+	panel := m.getFocusedFilePanel()
+	location := panel.Location
+	if item := panel.GetFocusedItem(); item.Directory && item.Location != "" {
+		location = item.Location
+	}
+	return m.fileModel.CreateNewFilePanelKeepFocus(location)
+}
+
+// Set the directory of all other panels to the focused panel's directory
+func (m *model) syncPanelsToCurrentDir() tea.Cmd {
+	focusedIdx := m.fileModel.FocusedPanelIndex
+	location := m.getFocusedFilePanel().Location
+	for i := range m.fileModel.FilePanels {
+		if i == focusedIdx {
+			continue
+		}
+		if err := m.fileModel.FilePanels[i].UpdateCurrentFilePanelDir(location); err != nil {
+			slog.Error("error while syncing panel directory", "panel", i, "error", err)
+		}
+	}
+	return m.fileModel.GetFilePreviewCmd(false)
+}
+
 func (m *model) createNewFilePanelRelativeToCurrent(path string) (tea.Cmd, error) {
 	currentDir := m.getFocusedFilePanel().Location
 	return m.createNewFilePanel(utils.ResolveAbsPath(currentDir, path))

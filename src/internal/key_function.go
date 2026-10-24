@@ -97,11 +97,13 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 		}
 		return cmd
 	case slices.Contains(common.Hotkeys.SplitFilePanel, msg):
-		cmd, err := m.splitPanel()
+		cmd, err := m.splitPanelAtCursor()
 		if err != nil && !errors.Is(err, filemodel.ErrMaximumPanelCount) {
 			slog.Error("unexpected error while splitting panel", "error", err)
 		}
 		return cmd
+	case slices.Contains(common.Hotkeys.SyncPanelsToCurrentDir, msg):
+		return m.syncPanelsToCurrentDir()
 	case slices.Contains(common.Hotkeys.ToggleFilePreviewPanel, msg):
 		return m.fileModel.ToggleFilePreviewPanel()
 
