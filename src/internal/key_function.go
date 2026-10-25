@@ -193,12 +193,29 @@ func (m *model) normalAndBrowserModeKey(msg string) tea.Cmd {
 		m.unfocusedFilePanelKey(msg)
 		return nil
 	}
+	if m.filePanelSelectionKey(msg) {
+		return nil
+	}
 	// Check if in the select mode and focusOn filepanel
 	if m.getFocusedFilePanel().PanelMode == filepanel.SelectMode {
 		return m.filePanelSelectModeKey(msg)
 	}
 
 	return m.filePanelNormalModeKey(msg)
+}
+
+// Selection actions work in both normal and select mode. Returns true if handled.
+func (m *model) filePanelSelectionKey(msg string) bool {
+	panel := m.getFocusedFilePanel()
+	switch {
+	case slices.Contains(common.Hotkeys.FilePanelSelectAllItem, msg):
+		panel.SelectAllItem()
+	case slices.Contains(common.Hotkeys.FilePanelToggleSelectItem, msg):
+		panel.ToggleSelectFocusedItem()
+	default:
+		return false
+	}
+	return true
 }
 
 func (m *model) unfocusedFilePanelKey(msg string) {
@@ -235,10 +252,10 @@ func (m *model) filePanelSelectModeKey(msg string) tea.Cmd {
 		m.copyMultipleItem(false)
 	case slices.Contains(common.Hotkeys.CutItems, msg):
 		m.copyMultipleItem(true)
+	case slices.Contains(common.Hotkeys.SearchBar, msg):
+		m.searchBarFocus()
 	case slices.Contains(common.Hotkeys.CopyPath, msg):
 		m.copyPath()
-	case slices.Contains(common.Hotkeys.FilePanelSelectAllItem, msg):
-		panel.SelectAllItem()
 	}
 	return nil
 }

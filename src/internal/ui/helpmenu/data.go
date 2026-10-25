@@ -166,6 +166,11 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 			hotkeyWorkType: globalType,
 		},
 		{
+			hotkey:         common.Hotkeys.FilePanelToggleSelectItem,
+			description:    "Toggle selection of item under cursor",
+			hotkeyWorkType: globalType,
+		},
+		{
 			hotkey:         common.Hotkeys.FilePanelSelectModeItemsSelectUp,
 			description:    "Select up from your cursor",
 			hotkeyWorkType: globalType,

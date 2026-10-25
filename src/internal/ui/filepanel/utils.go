@@ -114,11 +114,17 @@ func (m *Model) GetFirstSelectedLocation() string {
 	return result
 }
 
-// Select the item where cursor located (only work on select mode)
+// Toggle selection of the item where cursor located
 func (m *Model) SingleItemSelect() {
 	if !m.EmptyOrInvalid() {
 		m.ToggleSelected(m.GetFocusedItem().Location)
 	}
+}
+
+// Toggle selection of the item under cursor. Switches to select mode if needed.
+func (m *Model) ToggleSelectFocusedItem() {
+	m.EnsureSelectMode()
+	m.SingleItemSelect()
 }
 
 func (m *Model) ElemCount() int {

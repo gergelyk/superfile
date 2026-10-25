@@ -80,8 +80,16 @@ func (m *Model) ParentDirectory() error {
 	return m.UpdateCurrentFilePanelDir("..")
 }
 
-// Select all item in the file panel (only work on select mode)
+// Switches to select mode if the panel is in browser mode
+func (m *Model) EnsureSelectMode() {
+	if m.PanelMode != SelectMode {
+		m.PanelMode = SelectMode
+	}
+}
+
+// Select all item in the file panel. Switches to select mode if needed.
 func (m *Model) SelectAllItem() {
+	m.EnsureSelectMode()
 	for _, item := range m.element {
 		m.SetSelected(item.Location)
 	}
