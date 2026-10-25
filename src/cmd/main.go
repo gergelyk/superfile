@@ -142,15 +142,23 @@ func spfAppAction(_ context.Context, c *cli.Command) error {
 	}
 	// If no args are called along with "spf" use current dir
 	firstPanelPaths := []string{""}
-	if c.Args().Present() {
+	hasArgs := c.Args().Present()
+	if hasArgs {
 		firstPanelPaths = c.Args().Slice()
 	}
 
 	InitConfigFile()
 
+	// Restore last session: a new focused first panel at current dir, followed by
+	// the previous other panels. Preview state is restored even when paths are given.
+	lastPaths, previewOpen := internal.LoadLastSession()
+	if !hasArgs && lastPaths != nil {
+		firstPanelPaths = lastPaths
+	}
+
 	firstUse := checkFirstUse()
 
-	p := tea.NewProgram(internal.InitialModel(firstPanelPaths, firstUse))
+	p := tea.NewProgram(internal.InitialModel(firstPanelPaths, previewOpen, firstUse))
 	if _, err := p.Run(); err != nil {
 		utils.PrintfAndExitf("Alas, there's been an error: %v", err)
 	}

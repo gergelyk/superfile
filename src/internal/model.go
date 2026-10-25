@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"os"
@@ -40,9 +41,13 @@ var (
 // is passed to tea.NewProgram() which accepts tea.Model
 // Either way type 'model' is not exported, so there is not way main package can
 // be aware of it, and use it directly
-func InitialModel(firstPanelPaths []string, firstUseCheck bool) tea.Model {
+func InitialModel(firstPanelPaths []string, previewOpen *bool, firstUseCheck bool) tea.Model {
 	toggleDotFile, toggleFooter, zClient := initialConfig(firstPanelPaths)
-	return defaultModelConfig(toggleDotFile, toggleFooter, firstUseCheck, firstPanelPaths, zClient)
+	m := defaultModelConfig(toggleDotFile, toggleFooter, firstUseCheck, firstPanelPaths, zClient)
+	if previewOpen != nil {
+		m.fileModel.FilePreview.SetOpen(*previewOpen)
+	}
+	return m
 }
 
 // Init function to be called by Bubble tea framework, sets windows title,
@@ -666,6 +671,8 @@ func (m *model) quitSuperfile(cdOnQuit bool) {
 	}
 	m.fileModel.FilePreview.CleanUp()
 
+	m.saveLastPanels()
+
 	// cd on quit
 	currentDir := m.getFocusedFilePanel().Location
 	variable.SetLastDir(currentDir)
@@ -686,4 +693,20 @@ func (m *model) quitSuperfile(cdOnQuit bool) {
 func (m *model) nextIoReqCnt() int {
 	var res = atomic.AddInt32(&m.ioReqCnt, 1)
 	return int(res)
+}
+
+// saveLastPanels persists the panel locations so they can be restored on next start
+func (m *model) saveLastPanels() {
+	previewOpen := m.fileModel.FilePreview.IsOpen()
+	state := lastPanelsState{Focused: m.fileModel.FocusedPanelIndex, PreviewOpen: &previewOpen}
+	for i := range m.fileModel.FilePanels {
+		state.Panels = append(state.Panels, m.fileModel.FilePanels[i].Location)
+	}
+	data, err := json.Marshal(state)
+	if err == nil {
+		err = os.WriteFile(variable.LastPanelsFile, data, utils.ConfigFilePerm)
+	}
+	if err != nil {
+		slog.Error("Error during writing last panels file", "error", err)
+	}
 }

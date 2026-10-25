@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"os"
@@ -151,4 +152,38 @@ func printRuntimeInfo() {
 		"renderer_size_bytes", reflect.TypeOf(rendering.Renderer{}).Size(),
 		"borderConfig_size_bytes", reflect.TypeOf(rendering.BorderConfig{}).Size(),
 		"process_size_bytes", reflect.TypeOf(processbar.Process{}).Size())
+}
+
+type lastPanelsState struct {
+	Panels      []string `json:"panels"`
+	Focused     int      `json:"focused"`
+	PreviewOpen *bool    `json:"previewOpen,omitempty"`
+}
+
+// LoadLastSession returns the state saved on last quit. The returned paths start with ""
+// (current working directory) for the new focused panel, followed by the previous
+// session's other panels. paths is nil if no usable panels are saved;
+// previewOpen is nil if unknown.
+func LoadLastSession() (paths []string, previewOpen *bool) {
+	data, err := os.ReadFile(variable.LastPanelsFile)
+	if err != nil {
+		return nil, nil
+	}
+	var state lastPanelsState
+	if err := json.Unmarshal(data, &state); err != nil {
+		slog.Error("Invalid last panels file", "error", err)
+		return nil, nil
+	}
+	previewOpen = state.PreviewOpen
+	if len(state.Panels) == 0 || len(state.Panels) > common.FilePanelMax ||
+		state.Focused < 0 || state.Focused >= len(state.Panels) {
+		return nil, previewOpen
+	}
+	paths = []string{""}
+	for i, p := range state.Panels {
+		if i != state.Focused {
+			paths = append(paths, p)
+		}
+	}
+	return paths, previewOpen
 }
