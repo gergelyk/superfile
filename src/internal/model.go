@@ -20,6 +20,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/barasher/go-exiftool"
 
+	"github.com/yorukot/superfile/src/internal/ui/filemodel"
 	"github.com/yorukot/superfile/src/internal/ui/filepanel"
 	"github.com/yorukot/superfile/src/internal/ui/metadata"
 	"github.com/yorukot/superfile/src/internal/ui/notify"
@@ -482,17 +483,6 @@ func (m *model) splitPanel() (tea.Cmd, error) {
 	return m.createNewFilePanel(m.getFocusedFilePanel().Location)
 }
 
-// Like splitPanel, but opens in the directory under the cursor if there is one,
-// and keeps focus on the current panel
-func (m *model) splitPanelAtCursor() (tea.Cmd, error) {
-	panel := m.getFocusedFilePanel()
-	location := panel.Location
-	if item := panel.GetFocusedItem(); item.Directory && item.Location != "" {
-		location = item.Location
-	}
-	return m.fileModel.CreateNewFilePanelKeepFocus(location)
-}
-
 // Set the directory of all other panels to the focused panel's directory
 func (m *model) syncPanelsToCurrentDir() tea.Cmd {
 	focusedIdx := m.fileModel.FocusedPanelIndex
@@ -506,6 +496,21 @@ func (m *model) syncPanelsToCurrentDir() tea.Cmd {
 		}
 	}
 	return m.fileModel.GetFilePreviewCmd(false)
+}
+
+// Opens the directory under the cursor in the panel to the left (delta -1) or
+// right (delta 1) of the focused one, creating that panel if it doesn't exist.
+// Does nothing if the cursor isn't on a directory.
+func (m *model) openDirInAdjacentPanel(delta int) tea.Cmd {
+	item := m.getFocusedFilePanel().GetFocusedItem()
+	if !item.Directory || item.Location == "" {
+		return nil
+	}
+	cmd, err := m.fileModel.OpenDirInAdjacentPanel(delta, item.Location)
+	if err != nil && !errors.Is(err, filemodel.ErrMaximumPanelCount) {
+		slog.Error("unexpected error while opening directory in adjacent panel", "error", err)
+	}
+	return cmd
 }
 
 func (m *model) createNewFilePanelRelativeToCurrent(path string) (tea.Cmd, error) {

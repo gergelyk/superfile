@@ -74,12 +74,22 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 		},
 		{
 			hotkey:         common.Hotkeys.SplitFilePanel,
-			description:    "Split file panel (open new panel in the directory under cursor)",
+			description:    "Split file panel (open new panel in same directory)",
 			hotkeyWorkType: globalType,
 		},
 		{
 			hotkey:         common.Hotkeys.SyncPanelsToCurrentDir,
 			description:    "Set all other panels to the focused panel's directory",
+			hotkeyWorkType: globalType,
+		},
+		{
+			hotkey:         common.Hotkeys.OpenDirInLeftPanel,
+			description:    "Open the directory under cursor in the left panel (creates one if missing)",
+			hotkeyWorkType: globalType,
+		},
+		{
+			hotkey:         common.Hotkeys.OpenDirInRightPanel,
+			description:    "Open the directory under cursor in the right panel (creates one if missing)",
 			hotkeyWorkType: globalType,
 		},
 		{

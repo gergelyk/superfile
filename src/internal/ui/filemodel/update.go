@@ -11,16 +11,38 @@ import (
 	"github.com/yorukot/superfile/src/internal/ui/preview"
 )
 
+// Sets the directory of the panel next to the focused one (delta -1 for left,
+// 1 for right), creating it if there is none. Focus stays on the current panel.
+func (m *Model) OpenDirInAdjacentPanel(delta int, location string) (tea.Cmd, error) {
+	target := m.FocusedPanelIndex + delta
+	if target >= 0 && target < m.PanelCount() {
+		if err := m.FilePanels[target].UpdateCurrentFilePanelDir(location); err != nil {
+			return nil, err
+		}
+		m.FilePanels[target].UpdateElementsIfNeeded(true, m.DisplayDotFiles)
+		return m.GetFilePreviewCmd(false), nil
+	}
+	if m.PanelCount() >= m.MaxFilePanel {
+		return nil, ErrMaximumPanelCount
+	}
+	if _, err := os.Stat(location); err != nil {
+		return nil, fmt.Errorf("cannot access location : %s", location)
+	}
+
+	focused := m.GetFocusedFilePanel()
+	newPanel := filepanel.New(location, false, "", focused.SortKind, focused.SortReversed)
+	newPanel.SetHeight(m.Height)
+	if delta < 0 {
+		m.FilePanels = append([]filepanel.Model{newPanel}, m.FilePanels...)
+		m.FocusedPanelIndex++
+	} else {
+		m.FilePanels = append(m.FilePanels, newPanel)
+	}
+	m.updateChildComponentWidth()
+	return m.ensurePreviewDimensionsSync(), nil
+}
+
 func (m *Model) CreateNewFilePanel(location string) (tea.Cmd, error) {
-	return m.createFilePanel(location, true)
-}
-
-// Creates a new panel but keeps the focus on the current one
-func (m *Model) CreateNewFilePanelKeepFocus(location string) (tea.Cmd, error) {
-	return m.createFilePanel(location, false)
-}
-
-func (m *Model) createFilePanel(location string, focusNew bool) (tea.Cmd, error) {
 	if m.PanelCount() >= m.MaxFilePanel {
 		return nil, ErrMaximumPanelCount
 	}
@@ -36,11 +58,9 @@ func (m *Model) createFilePanel(location string, focusNew bool) (tea.Cmd, error)
 	newPanelIndex := m.PanelCount() - 1
 
 	m.FilePanels[newPanelIndex].SetHeight(m.Height)
-	if focusNew {
-		m.FilePanels[m.FocusedPanelIndex].IsFocused = false
-		m.FilePanels[newPanelIndex].IsFocused = true
-		m.FocusedPanelIndex = newPanelIndex
-	}
+	m.FilePanels[m.FocusedPanelIndex].IsFocused = false
+	m.FilePanels[newPanelIndex].IsFocused = true
+	m.FocusedPanelIndex = newPanelIndex
 
 	m.updateChildComponentWidth()
 	return m.ensurePreviewDimensionsSync(), nil

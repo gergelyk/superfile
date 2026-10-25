@@ -63,3 +63,45 @@ func (m *Model) ListDown() {
 		m.renderIndex = 0
 	}
 }
+
+// Number of rows visible in the help menu list
+func (m *Model) pageSize() int {
+	return max(m.height-common.InnerPadding, 1)
+}
+
+// Move the cursor down by one page, without wrapping
+func (m *Model) PageDown() {
+	n := len(m.filteredData)
+	if n == 0 {
+		return
+	}
+	last := n - 1
+	for last > 0 && m.filteredData[last].subTitle != "" {
+		last--
+	}
+	m.cursor = min(m.cursor+m.pageSize(), last)
+	if m.filteredData[m.cursor].subTitle != "" && m.cursor < last {
+		m.cursor++
+	}
+	if m.cursor > m.renderIndex+m.height-5 {
+		m.renderIndex = m.cursor - (m.height - 5)
+	}
+	m.renderIndex = min(m.renderIndex, max(n-m.pageSize(), 0))
+}
+
+// Move the cursor up by one page, without wrapping
+func (m *Model) PageUp() {
+	if len(m.filteredData) == 0 {
+		return
+	}
+	m.cursor = max(m.cursor-m.pageSize(), 1)
+	if m.filteredData[m.cursor].subTitle != "" && m.cursor > 1 {
+		m.cursor--
+	}
+	if m.cursor < m.renderIndex {
+		m.renderIndex = m.cursor
+	}
+	if m.cursor <= 1 {
+		m.renderIndex = 0
+	}
+}

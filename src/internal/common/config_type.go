@@ -135,6 +135,8 @@ type HotkeysType struct {
 	CreateNewFilePanel     []string `toml:"create_new_file_panel"`
 	SplitFilePanel         []string `toml:"split_file_panel"`
 	SyncPanelsToCurrentDir []string `toml:"sync_panels_to_current_dir"`
+	OpenDirInLeftPanel     []string `toml:"open_dir_in_left_panel"`
+	OpenDirInRightPanel    []string `toml:"open_dir_in_right_panel"`
 	NextFilePanel          []string `toml:"next_file_panel"`
 	PreviousFilePanel      []string `toml:"previous_file_panel"`
 	ToggleFilePreviewPanel []string `toml:"toggle_file_preview_panel"`
