@@ -65,7 +65,7 @@ func (m *Model) handleNavKeys(msg string) {
 		m.PageUp()
 	case slices.Contains(common.Hotkeys.PageDown, msg):
 		m.PageDown()
-	case slices.Contains(common.Hotkeys.Quit, msg), msg == "q":
+	case slices.Contains(common.Hotkeys.Quit, msg), slices.Contains(common.Hotkeys.OpenHelpMenu, msg), msg == "q":
 		m.Close()
 	case slices.Contains(common.Hotkeys.SearchBar, msg):
 		m.searchBar.Focus()
