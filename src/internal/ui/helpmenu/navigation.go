@@ -83,8 +83,9 @@ func (m *Model) PageDown() {
 	if m.filteredData[m.cursor].subTitle != "" && m.cursor < last {
 		m.cursor++
 	}
-	if m.cursor > m.renderIndex+m.height-5 {
-		m.renderIndex = m.cursor - (m.height - 5)
+	const reservedRows = 5
+	if m.cursor > m.renderIndex+m.height-reservedRows {
+		m.renderIndex = m.cursor - (m.height - reservedRows)
 	}
 	m.renderIndex = min(m.renderIndex, max(n-m.pageSize(), 0))
 }

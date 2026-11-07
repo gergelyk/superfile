@@ -24,10 +24,11 @@ import (
 // PanelNumberLabel returns the label shown on the panel's top border for the
 // panel at the given zero-based index: "1".."9", then "0" for the tenth panel.
 func PanelNumberLabel(index int) string {
-	if index < 0 || index > 9 {
+	const labelCount = 10
+	if index < 0 || index >= labelCount {
 		return ""
 	}
-	return strconv.Itoa((index + 1) % 10)
+	return strconv.Itoa((index + 1) % labelCount)
 }
 
 func (m *Model) Render(focused bool, index int) string {

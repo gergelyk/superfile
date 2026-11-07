@@ -142,24 +142,25 @@ func (b *BorderConfig) GetBorder(borderStrings lipgloss.Border) lipgloss.Border 
 	}
 
 	if len(b.dividerIdx) > 0 {
-		// Update res.Left and res.Right
-		leftBorder := strings.Builder{}
-		rightBorder := strings.Builder{}
-		di := 0
-		for i := range actualHeight {
-			if di < len(b.dividerIdx) && b.dividerIdx[di] == i {
-				di++
-				leftBorder.WriteString(borderStrings.MiddleLeft)
-				rightBorder.WriteString(borderStrings.MiddleRight)
-			} else {
-				leftBorder.WriteString(borderStrings.Left)
-				rightBorder.WriteString(borderStrings.Right)
-			}
-		}
-
-		res.Left = leftBorder.String()
-		res.Right = rightBorder.String()
+		res.Left, res.Right = b.sideBorders(borderStrings, actualHeight)
 	}
 
 	return res
+}
+
+func (b *BorderConfig) sideBorders(borderStrings lipgloss.Border, actualHeight int) (string, string) {
+	leftBorder := strings.Builder{}
+	rightBorder := strings.Builder{}
+	di := 0
+	for i := range actualHeight {
+		if di < len(b.dividerIdx) && b.dividerIdx[di] == i {
+			di++
+			leftBorder.WriteString(borderStrings.MiddleLeft)
+			rightBorder.WriteString(borderStrings.MiddleRight)
+		} else {
+			leftBorder.WriteString(borderStrings.Left)
+			rightBorder.WriteString(borderStrings.Right)
+		}
+	}
+	return leftBorder.String(), rightBorder.String()
 }

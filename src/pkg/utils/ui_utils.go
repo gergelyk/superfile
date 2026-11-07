@@ -11,3 +11,6 @@ func FullFooterHeight(footerHeight int, toggleFooter bool) int {
 	}
 	return 0
 }
+
+// Full width bar at the very bottom of the screen, showing focused panel path
+const PathBarHeight = 1

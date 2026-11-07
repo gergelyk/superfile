@@ -176,7 +176,7 @@ const (
 )
 
 func isPanelTransferKey(msg string) bool {
-	return len(msg) == 1 && strings.Contains(panelCopyKeys+panelMoveKeys, msg)
+	return len(msg) == 1 && strings.Contains(panelCopyKeys, msg) || strings.Contains(panelMoveKeys, msg)
 }
 
 // panelTransferTarget maps a number key to a zero-based panel index.

@@ -28,7 +28,8 @@ func (m *model) validateLayout() error { //nolint:gocognit // cumilation of vali
 	}
 
 	// PanelHeight + 2 lines (main border) + actual footer height
-	if m.fullHeight != (m.mainPanelHeight+common.BorderPadding)+utils.FullFooterHeight(m.footerHeight, m.toggleFooter) {
+	if m.fullHeight != (m.mainPanelHeight+common.BorderPadding)+utils.FullFooterHeight(m.footerHeight, m.toggleFooter)+
+		utils.PathBarHeight {
 		return fmt.Errorf(
 			"invalid model layout, total height doesn't sum correctly, fullHeight : %v, mainPanelHeight : %v, footerHeight : %v",
 			m.fullHeight,
@@ -279,7 +280,7 @@ func (m *model) validateComponentRender() error {
 	return nil
 }
 
-func (m *model) validateFinalRender() error { //nolint:gocognit // cumilation of validations
+func (m *model) validateFinalRender() error {
 	mainRender := m.mainComponentsRender()
 	if err := validateRender(mainRender, m.fullHeight, m.fullWidth, false); err != nil {
 		return fmt.Errorf("model rendering failures : %w", err)
@@ -337,7 +338,7 @@ func (m *model) validateFinalRender() error { //nolint:gocognit // cumilation of
 		processBarPos := compPosition{
 			stRow:  m.mainPanelHeight + common.BorderPadding,
 			stCol:  0,
-			endRow: m.fullHeight - 1,
+			endRow: m.fullHeight - utils.PathBarHeight - 1,
 			endCol: m.processBarModel.GetWidth() - 1,
 		}
 		if err := m.validateComponentPlacement(lines, processBarPos, true); err != nil {
@@ -346,7 +347,7 @@ func (m *model) validateFinalRender() error { //nolint:gocognit // cumilation of
 		metadataPos := compPosition{
 			stRow:  m.mainPanelHeight + common.BorderPadding,
 			stCol:  m.processBarModel.GetWidth(),
-			endRow: m.fullHeight - 1,
+			endRow: m.fullHeight - utils.PathBarHeight - 1,
 			endCol: m.processBarModel.GetWidth() + m.fileMetaData.GetWidth() - 1,
 		}
 		if err := m.validateComponentPlacement(lines, metadataPos, true); err != nil {
@@ -355,7 +356,7 @@ func (m *model) validateFinalRender() error { //nolint:gocognit // cumilation of
 		clipboardPos := compPosition{
 			stRow:  m.mainPanelHeight + common.BorderPadding,
 			stCol:  m.processBarModel.GetWidth() + m.fileMetaData.GetWidth(),
-			endRow: m.fullHeight - 1,
+			endRow: m.fullHeight - utils.PathBarHeight - 1,
 			endCol: m.fullWidth - 1,
 		}
 		if err := m.validateComponentPlacement(lines, clipboardPos, true); err != nil {

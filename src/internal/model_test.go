@@ -127,7 +127,7 @@ func TestInitialFilePathPositionsCursorWindow(t *testing.T) {
 
 	m := defaultTestModel(dir1, file2, file7)
 	// View port of 5
-	TeaUpdate(m, tea.WindowSizeMsg{Width: common.MinimumWidth, Height: 10})
+	TeaUpdate(m, tea.WindowSizeMsg{Width: common.MinimumWidth, Height: 11})
 	// Uncomment below to understand the distribution
 	// t.Logf("Heights : %d [%d - [%d] %d]\n", m.fullHeight, m.footerHeight, m.mainPanelHeight,
 	//	panelElementHeight(m.mainPanelHeight))

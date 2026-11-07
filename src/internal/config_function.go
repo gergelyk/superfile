@@ -164,7 +164,7 @@ type lastPanelsState struct {
 // (current working directory) for the new focused panel, followed by the previous
 // session's other panels. paths is nil if no usable panels are saved;
 // previewOpen is nil if unknown.
-func LoadLastSession() (paths []string, previewOpen *bool) {
+func LoadLastSession() ([]string, *bool) {
 	data, err := os.ReadFile(variable.LastPanelsFile)
 	if err != nil {
 		return nil, nil
@@ -174,12 +174,12 @@ func LoadLastSession() (paths []string, previewOpen *bool) {
 		slog.Error("Invalid last panels file", "error", err)
 		return nil, nil
 	}
-	previewOpen = state.PreviewOpen
+	previewOpen := state.PreviewOpen
 	if len(state.Panels) == 0 || len(state.Panels) > common.FilePanelMax ||
 		state.Focused < 0 || state.Focused >= len(state.Panels) {
 		return nil, previewOpen
 	}
-	paths = []string{""}
+	paths := []string{""}
 	for i, p := range state.Panels {
 		if i != state.Focused {
 			paths = append(paths, p)

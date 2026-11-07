@@ -133,20 +133,8 @@ func (dp *debugPrinter) checkDependency(name string, flag string) {
 		// Try to get version
 		version := "Found at " + path
 		if flag != "" {
-			//nolint:gosec // flags are hardcoded strings
-			cmd := exec.Command(name, strings.Split(flag, " ")...)
-			out, err := cmd.CombinedOutput()
-			if err == nil {
-				lines := strings.Split(string(out), "\n")
-				if len(lines) > 0 {
-					v := strings.TrimSpace(lines[0])
-					if len(v) > maxVersionLength {
-						v = v[:maxVersionLength] + "..."
-					}
-					if v != "" {
-						version = v
-					}
-				}
+			if v := dependencyVersion(name, flag); v != "" {
+				version = v
 			}
 		}
 		status = dp.successColor.Sprint(version)
@@ -155,6 +143,19 @@ func (dp *debugPrinter) checkDependency(name string, flag string) {
 	keyStr := fmt.Sprintf("%-*s", keyWidth, name)
 	_, _ = dp.flagColor.Print(keyStr)
 	fmt.Printf(": %s\n", status)
+}
+
+func dependencyVersion(name string, flag string) string {
+	//nolint:gosec // flags are hardcoded strings
+	out, err := exec.Command(name, strings.Split(flag, " ")...).CombinedOutput()
+	if err != nil {
+		return ""
+	}
+	v := strings.TrimSpace(strings.Split(string(out), "\n")[0])
+	if len(v) > maxVersionLength {
+		v = v[:maxVersionLength] + "..."
+	}
+	return v
 }
 
 func getKernelVersion() (string, error) {

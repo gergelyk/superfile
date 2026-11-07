@@ -215,7 +215,8 @@ func (m *model) setHeightValues() {
 	// TODO : Calculate the value , instead of manually hard coding it.
 
 	// Main panel height = Total terminal height- 2(file panel border) - footer height
-	m.mainPanelHeight = m.fullHeight - common.BorderPadding - utils.FullFooterHeight(m.footerHeight, m.toggleFooter)
+	m.mainPanelHeight = m.fullHeight - common.BorderPadding - utils.FullFooterHeight(m.footerHeight, m.toggleFooter) -
+		utils.PathBarHeight
 }
 
 func (m *model) updateComponentDimensions() tea.Cmd {
@@ -657,14 +658,19 @@ func (m *model) mainComponentsRender() string {
 	}
 
 	if !m.toggleFooter {
-		return mainPanel
+		return lipgloss.JoinVertical(0, mainPanel, m.pathBarRender())
 	}
 
 	processBar := m.processBarRender()
 	metaData := m.fileMetaData.Render(m.focusPanel == metadataFocus)
 	clipboardBar := m.clipboard.Render()
 	footer := lipgloss.JoinHorizontal(0, processBar, metaData, clipboardBar)
-	return lipgloss.JoinVertical(0, mainPanel, footer)
+	return lipgloss.JoinVertical(0, mainPanel, footer, m.pathBarRender())
+}
+
+func (m *model) pathBarRender() string {
+	path := common.TruncateTextBeginning(m.getFocusedFilePanel().Location, m.fullWidth, "...")
+	return common.FooterStyle.Width(m.fullWidth).Render(path)
 }
 
 // Close superfile application. Cd into the current dir if CdOnQuit on and save
