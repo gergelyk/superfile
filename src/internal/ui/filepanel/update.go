@@ -9,18 +9,6 @@ import (
 	"github.com/yorukot/superfile/src/pkg/utils"
 )
 
-func (m *Model) ChangeFilePanelMode() {
-	switch m.PanelMode {
-	case SelectMode:
-		m.ResetSelected()
-		m.PanelMode = BrowserMode
-	case BrowserMode:
-		m.PanelMode = SelectMode
-	default:
-		slog.Error("Unexpected panelMode", "panelMode", m.PanelMode)
-	}
-}
-
 // This should be the function that is always called whenever we are updating a directory.
 func (m *Model) UpdateCurrentFilePanelDir(path string) error {
 	slog.Debug("updateCurrentFilePanelDir", "panel.location", m.Location, "path", path)

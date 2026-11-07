@@ -28,6 +28,14 @@ func (m *Model) GetFirstElement() Element {
 func (m *Model) ResetSelected() {
 	m.selectOrderCounter = 0
 	m.selected = make(map[string]int)
+	m.exitSelectModeIfNoneSelected()
+}
+
+// Switches back to browser mode once nothing is selected
+func (m *Model) exitSelectModeIfNoneSelected() {
+	if m.PanelMode == SelectMode && len(m.selected) == 0 {
+		m.PanelMode = BrowserMode
+	}
 }
 
 // For modification. Make sure to do a nil check
@@ -48,12 +56,14 @@ func (m *Model) SetSelected(location string) {
 func (m *Model) SetUnSelected(location string) {
 	if m.CheckSelected(location) {
 		delete(m.selected, location)
+		m.exitSelectModeIfNoneSelected()
 	}
 }
 
 func (m *Model) ToggleSelected(location string) {
 	if m.CheckSelected(location) {
 		delete(m.selected, location)
+		m.exitSelectModeIfNoneSelected()
 		return
 	}
 	m.SetSelected(location)

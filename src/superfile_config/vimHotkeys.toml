@@ -67,7 +67,6 @@ open_current_directory_with_editor = ['E', '']
 #-- Other Actions
 pinned_directory = ['P', '']
 toggle_dot_file = ['.', '']
-change_panel_mode = ['m', '']
 open_help_menu = ['?', '']
 open_spf_prompt = ['>', '']
 open_command_line = [':', '']

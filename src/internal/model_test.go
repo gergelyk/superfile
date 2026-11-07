@@ -306,7 +306,7 @@ func TestChooserFile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			m := defaultTestModel(dir1)
 			if tt.selectMode {
-				m.getFocusedFilePanel().ChangeFilePanelMode()
+				m.getFocusedFilePanel().EnsureSelectMode()
 			}
 			if len(tt.selectedFiles) > 0 {
 				m.getFocusedFilePanel().SetSelectedAll(tt.selectedFiles)

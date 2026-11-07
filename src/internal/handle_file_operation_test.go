@@ -51,7 +51,7 @@ func TestCopyPath(t *testing.T) {
 		m := defaultTestModel(curTestDir)
 		captureClipboard(m)
 		panel := m.getFocusedFilePanel()
-		panel.ChangeFilePanelMode()
+		panel.EnsureSelectMode()
 		panel.SetSelected(file2)
 		panel.SetSelected(file1)
 		setFilePanelSelectedItemByLocation(t, panel, dir1)
@@ -66,7 +66,7 @@ func TestCopyPath(t *testing.T) {
 		m := defaultTestModel(curTestDir)
 		captureClipboard(m)
 		panel := m.getFocusedFilePanel()
-		panel.ChangeFilePanelMode()
+		panel.EnsureSelectMode()
 		setFilePanelSelectedItemByLocation(t, panel, file2)
 
 		TeaUpdate(m, utils.TeaRuneKeyMsg(common.Hotkeys.CopyPath[0]))
@@ -183,7 +183,7 @@ func TestCompressSelectedFiles(t *testing.T) {
 
 			require.Equal(t, filepanel.BrowserMode, m.getFocusedFilePanel().PanelMode)
 			if tt.selectMode {
-				m.getFocusedFilePanel().ChangeFilePanelMode()
+				m.getFocusedFilePanel().EnsureSelectMode()
 				m.getFocusedFilePanel().SetSelectedAll(tt.selectedElem)
 			}
 

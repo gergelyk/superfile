@@ -201,11 +201,6 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 			hotkeyWorkType: globalType,
 		},
 		{
-			hotkey:         common.Hotkeys.ChangePanelMode,
-			description:    "Change between selection mode or normal mode",
-			hotkeyWorkType: globalType,
-		},
-		{
 			hotkey:         common.Hotkeys.PinnedDirectory,
 			description:    "Pin or Unpin folder to sidebar (can be auto saved)",
 			hotkeyWorkType: globalType,
