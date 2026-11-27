@@ -124,17 +124,17 @@ func (m *model) panelItemRename() {
 		return
 	}
 
-	cursorPos := -1
+	// Select only the base name. Every suffix (f.e. .tar.gz) is excluded.
+	// A leading dot belongs to the base name.
 	nameRunes := []rune(panel.GetFocusedItem().Name)
-	nameLen := len(nameRunes)
-	for i := nameLen - 1; i >= 0; i-- {
-		if nameRunes[i] == '.' {
-			cursorPos = i
-			break
+	cursorPos := len(nameRunes)
+	if !panel.GetFocusedItem().Directory {
+		for i := 1; i < len(nameRunes); i++ {
+			if nameRunes[i] == '.' {
+				cursorPos = i
+				break
+			}
 		}
-	}
-	if cursorPos == -1 || cursorPos == 0 && nameLen > 0 || panel.GetFocusedItem().Directory {
-		cursorPos = nameLen
 	}
 
 	m.fileModel.Renaming = true
