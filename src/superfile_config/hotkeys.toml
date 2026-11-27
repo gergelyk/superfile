@@ -62,8 +62,10 @@ compress_file = ['ctrl+a', '']
 extract_file = ['ctrl+e', '']
 
 #-- Editor Actions
-open_current_directory_with_editor = ['E', '']
+open_current_directory_with_editor = ['alt+e', '']
+open_with_editor = ['E', 'f4']
 open_file_with_editor = ['e', '']
+view_file = ['f3', '']
 
 #-- Other Actions
 copy_path = ['ctrl+p', '']

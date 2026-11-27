@@ -348,6 +348,8 @@ func (m *model) handleKeyInput(msg tea.KeyPressMsg) tea.Cmd {
 		m.sidebarModel.HandleSearchBarKey(msg.String())
 	case m.sortModal.IsOpen():
 		m.sortOptionsKey(msg.String())
+	case m.editorPicker.IsOpen():
+		cmd = m.editorPickerKey(msg.String())
 	// If help menu is open
 	case m.helpMenu.IsOpen():
 		m.helpMenu.HandleKey(msg.String())
@@ -619,6 +621,13 @@ func (m *model) updateRenderForOverlay(finalRender string) string {
 		overlayX := m.fullWidth/common.CenterDivisor - m.zoxideModal.GetWidth()/common.CenterDivisor
 		overlayY := m.fullHeight/common.CenterDivisor - m.zoxideModal.GetMaxHeight()/common.CenterDivisor
 		return stringfunction.PlaceOverlay(overlayX, overlayY, zoxideModal, finalRender)
+	}
+
+	if m.editorPicker.IsOpen() {
+		picker := m.editorPicker.Render()
+		overlayX := m.fullWidth/common.CenterDivisor - m.editorPicker.Width/common.CenterDivisor
+		overlayY := m.fullHeight/common.CenterDivisor - m.editorPicker.Height/common.CenterDivisor
+		return stringfunction.PlaceOverlay(overlayX, overlayY, picker, finalRender)
 	}
 
 	if m.sortModal.IsOpen() {

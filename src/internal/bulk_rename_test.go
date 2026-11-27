@@ -52,3 +52,21 @@ func TestSplitEditedLines(t *testing.T) {
 	assert.Equal(t, []string{"a", "b"}, splitEditedLines("a\r\nb\n"))
 	assert.Equal(t, []string{"a", ""}, splitEditedLines("a\n\n"))
 }
+
+func TestRenameSelectionEnd(t *testing.T) {
+	tests := []struct {
+		name  string
+		isDir bool
+		want  int
+	}{
+		{"a.tar.gz", false, 1},
+		{".bashrc", false, 7},
+		{"report v1.2 final.txt", false, 17},
+		{"my file.txt", false, 7},
+		{"a. b", false, 4},
+		{"dir.d", true, 5},
+	}
+	for _, tt := range tests {
+		assert.Equal(t, tt.want, renameSelectionEnd(tt.name, tt.isDir), tt.name)
+	}
+}

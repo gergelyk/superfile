@@ -65,7 +65,9 @@ compress_file = ['ctrl+a', '']
 
 #-- Editor Actions
 open_file_with_editor = ['e', '']
-open_current_directory_with_editor = ['E', '']
+view_file = ['f3', '']
+open_current_directory_with_editor = ['alt+e', '']
+open_with_editor = ['E', 'f4']
 
 #-- Other Actions
 pinned_directory = ['P', '']

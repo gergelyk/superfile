@@ -100,7 +100,7 @@ func LoadTomlFile(filePath string, defaultData string, target interface{},
 			fieldName = field.Name
 		}
 		// Skip open_with field as it's an optional table
-		if fieldName == "open_with" {
+		if fieldName == "open_with" || fieldName == "file_types" {
 			continue
 		}
 		if _, exists := rawData[fieldName]; !exists {

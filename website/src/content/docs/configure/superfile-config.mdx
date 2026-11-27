@@ -34,6 +34,20 @@ The editor your files will be opened with (Leave blank to use the EDITOR environ
 
 The editor your directories will be opened with (Leave blank to use defaults : `vi` - Linux, `open` - macOS, `explorer` - Windows).
 
+- ###### editors
+
+External (GUI) editors used by `E` / `F4` (and the file viewer, `F3`) for textual files that match no file type. Each entry is a command, optionally with arguments. Special entries: `terminal` (the `editor` setting or the EDITOR environment variable) and `default` (system default application, always offered last). Editors that are not installed are skipped. If more than one remains, a dialog lets you pick. Default: `['code']`.
+
+- ###### file_types
+
+Optional tables with their own editor lists. The first file type containing the file extension is used. Must be at the very end of the file.
+
+```toml
+[file_types.code]
+extensions = ['go', 'py', 'js']
+editors = ['code', 'kate']
+```
+
 - ###### auto_check_update
 
 `true` => Checks whether updates are needed when you exit superfile (only checks once a day).

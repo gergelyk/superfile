@@ -3,11 +3,14 @@ package internal
 import (
 	"errors"
 	"fmt"
+	"github.com/yorukot/superfile/src/internal/editors"
+	"github.com/yorukot/superfile/src/internal/ui/viewer"
 	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -115,6 +118,22 @@ func (m *model) warnModalForRenaming() tea.Cmd {
 	return res
 }
 
+// renameSelectionEnd returns the rune index where the base name ends. Every suffix
+// (f.e. .tar.gz) is excluded. A leading dot belongs to the base name, and a dot
+// followed by text that contains a space is part of the base name.
+func renameSelectionEnd(name string, isDir bool) int {
+	runes := []rune(name)
+	if isDir {
+		return len(runes)
+	}
+	for i := 1; i < len(runes); i++ {
+		if runes[i] == '.' && !slices.Contains(runes[i+1:], ' ') {
+			return i
+		}
+	}
+	return len(runes)
+}
+
 // Rename file where the cusror is located
 // TODO: Fix this. It doesn't do any rename, just opens the rename text input
 // Actual rename happens at confirmRename() in handle_modal.go
@@ -124,18 +143,7 @@ func (m *model) panelItemRename() {
 		return
 	}
 
-	// Select only the base name. Every suffix (f.e. .tar.gz) is excluded.
-	// A leading dot belongs to the base name.
-	nameRunes := []rune(panel.GetFocusedItem().Name)
-	cursorPos := len(nameRunes)
-	if !panel.GetFocusedItem().Directory {
-		for i := 1; i < len(nameRunes); i++ {
-			if nameRunes[i] == '.' {
-				cursorPos = i
-				break
-			}
-		}
-	}
+	cursorPos := renameSelectionEnd(panel.GetFocusedItem().Name, panel.GetFocusedItem().Directory)
 
 	m.fileModel.Renaming = true
 	panel.Renaming = true
@@ -597,6 +605,76 @@ func (m *model) openFileWithEditor() tea.Cmd {
 	return tea.ExecProcess(editorCommand(panel.GetFocusedItem().Location), func(err error) tea.Msg {
 		return editorFinishedMsg{err}
 	})
+}
+
+// openWithEditor opens the focused item with an external editor, asking which
+// one to use if there are several
+func (m *model) openWithEditor() tea.Cmd {
+	panel := m.getFocusedFilePanel()
+	if panel.Empty() {
+		return nil
+	}
+	item := panel.GetFocusedItem()
+	list := editors.Resolve(item.Location, item.Directory)
+	if len(list) == 1 {
+		return m.runEditor(list[0], item.Location)
+	}
+	names := make([]string, len(list))
+	for i, e := range list {
+		names[i] = e.Name
+	}
+	m.pendingEditors = list
+	m.pendingEditPath = item.Location
+	m.editorPicker.Open(names)
+	return nil
+}
+
+func (m *model) confirmEditorPicker() tea.Cmd {
+	idx := m.editorPicker.Cursor
+	m.editorPicker.Close()
+	if idx >= len(m.pendingEditors) {
+		return nil
+	}
+	return m.runEditor(m.pendingEditors[idx], m.pendingEditPath)
+}
+
+func (m *model) runEditor(e editors.Editor, path string) tea.Cmd {
+	if e.Terminal {
+		return tea.ExecProcess(editorCommand(path), func(err error) tea.Msg {
+			return editorFinishedMsg{err}
+		})
+	}
+	reqID := m.nextIoReqCnt()
+	return func() tea.Msg {
+		if err := e.Launch(path); err != nil {
+			slog.Error("Error while launching editor", "editor", e.Name, "error", err)
+			return NewNotifyModalMsg(notify.New(true, "Cannot launch "+e.Name, err.Error(), notify.NoAction), reqID)
+		}
+		return nil
+	}
+}
+
+// viewFile opens the focused file in the browser-based viewer
+func (m *model) viewFile() tea.Cmd {
+	panel := m.getFocusedFilePanel()
+	if panel.Empty() {
+		return nil
+	}
+	path := panel.GetFocusedItem().Location
+	reqID := m.nextIoReqCnt()
+	var choices []viewer.Choice
+	for _, e := range editors.Resolve(path, false) {
+		if !e.Terminal {
+			choices = append(choices, viewer.Choice{Name: e.Name, Launch: e.Launch})
+		}
+	}
+	return func() tea.Msg {
+		if err := viewer.Open(path, choices); err != nil {
+			slog.Error("Error while opening viewer", "error", err)
+			return NewNotifyModalMsg(notify.New(true, "Cannot view file", err.Error(), notify.NoAction), reqID)
+		}
+		return nil
+	}
 }
 
 // editorCommand builds a command that opens path with the configured editor

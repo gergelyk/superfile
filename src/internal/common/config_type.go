@@ -62,14 +62,23 @@ type ThemeType struct {
 	HelpMenuTitle  string `toml:"help_menu_title"`
 }
 
+// FileTypeConfig is a group of file extensions with the editors to open them with
+type FileTypeConfig struct {
+	Extensions []string `toml:"extensions"`
+	Editors    []string `toml:"editors"`
+}
+
 // Configuration settings
 type ConfigType struct {
 	Theme string `toml:"theme" comment:"More details are at https://superfile.dev/configure/superfile-config/\nchange your theme"`
 
-	Editor    string `toml:"editor"     comment:"\nThe editor files will be opened with. (Leave blank to use the EDITOR environment variable)."`
-	DirEditor string `toml:"dir_editor" comment:"\nThe editor directories will be opened with. (Leave blank to use the default editors)."`
+	Editor    string   `toml:"editor"     comment:"\nThe editor files will be opened with. (Leave blank to use the EDITOR environment variable)."`
+	DirEditor string   `toml:"dir_editor" comment:"\nThe editor directories will be opened with. (Leave blank to use the default editors)."`
+	Editors   []string `toml:"editors"    comment:"\nExternal (GUI) editors for E / F4, used for text files that have no matching file type. Each entry is a command, optionally with arguments. Special entries: \"terminal\" (editor / $EDITOR) and \"default\" (system default application, always offered last)."`
 	// The table (map) for editor by file extension
-	OpenWith map[string]string `toml:"open_with" comment:"\nCustom open commands by file extension."`
+	// File types with their own editor lists
+	FileTypes map[string]FileTypeConfig `toml:"file_types" comment:"\nFile types with their own editor lists for E / F4. The first file type that has the extension is used."`
+	OpenWith  map[string]string         `toml:"open_with" comment:"\nCustom open commands by file extension."`
 
 	AutoCheckUpdate        bool   `toml:"auto_check_update"         comment:"\nAuto check for update"`
 	CdOnQuit               bool   `toml:"cd_on_quit"                comment:"\nCd on quit (For more details, please check out https://superfile.dev/configure/superfile-config/#cd_on_quit)"`
@@ -164,6 +173,8 @@ type HotkeysType struct {
 
 	OpenFileWithEditor             []string `toml:"open_file_with_editor"              comment:"editor"`
 	OpenCurrentDirectoryWithEditor []string `toml:"open_current_directory_with_editor"`
+	ViewFile                       []string `toml:"view_file"`
+	OpenWithEditor                 []string `toml:"open_with_editor"`
 
 	PinnedDirectory []string `toml:"pinned_directory"  comment:"other"`
 	ToggleDotFile   []string `toml:"toggle_dot_file"`

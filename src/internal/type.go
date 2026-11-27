@@ -8,7 +8,9 @@ import (
 	"github.com/yorukot/superfile/src/internal/ui/helpmenu"
 	"github.com/yorukot/superfile/src/internal/ui/spferror"
 
+	"github.com/yorukot/superfile/src/internal/editors"
 	"github.com/yorukot/superfile/src/internal/ui/clipboard"
+	"github.com/yorukot/superfile/src/internal/ui/editorpicker"
 	"github.com/yorukot/superfile/src/internal/ui/sortmodel"
 
 	"github.com/yorukot/superfile/src/internal/ui/filemodel"
@@ -69,6 +71,9 @@ type model struct {
 	promptModal     prompt.Model
 	zoxideModal     zoxideui.Model
 	sortModal       sortmodel.Model
+	editorPicker    editorpicker.Model
+	pendingEditors  []editors.Editor
+	pendingEditPath string
 	spfError        spferror.Model
 	mutexErrorModal sync.Mutex
 

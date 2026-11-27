@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log/slog"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/yorukot/superfile/src/internal/common"
@@ -161,6 +162,12 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 
 	case slices.Contains(common.Hotkeys.OpenFileWithEditor, msg):
 		return m.openFileWithEditor()
+
+	case slices.Contains(common.Hotkeys.OpenWithEditor, msg):
+		return m.openWithEditor()
+
+	case slices.Contains(common.Hotkeys.ViewFile, msg):
+		return m.viewFile()
 
 	case slices.Contains(common.Hotkeys.OpenCurrentDirectoryWithEditor, msg):
 		return m.openDirectoryWithEditor()
@@ -406,6 +413,25 @@ func (m *model) sortOptionsKey(msg string) {
 	case slices.Contains(common.Hotkeys.ListDown, msg):
 		m.sortModal.ListDown()
 	}
+}
+
+// Handles key inputs inside the editor picker
+func (m *model) editorPickerKey(msg string) tea.Cmd {
+	switch {
+	case slices.Contains(common.Hotkeys.Quit, msg), slices.Contains(common.Hotkeys.OpenWithEditor, msg):
+		m.editorPicker.Close()
+	case slices.Contains(common.Hotkeys.Confirm, msg):
+		return m.confirmEditorPicker()
+	case slices.Contains(common.Hotkeys.ListUp, msg):
+		m.editorPicker.ListUp()
+	case slices.Contains(common.Hotkeys.ListDown, msg):
+		m.editorPicker.ListDown()
+	default:
+		if n, err := strconv.Atoi(msg); err == nil && m.editorPicker.SelectNumber(n) {
+			return m.confirmEditorPicker()
+		}
+	}
+	return nil
 }
 
 func (m *model) renamingKey(msg string) tea.Cmd {

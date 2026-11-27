@@ -15,6 +15,11 @@
 # Default: $EDITOR
 editor = ""
 
+#-- Viewer Editors
+# External editors launched with E or F4 in the file viewer (F3)
+editors = ['code']
+# Special entries: 'terminal' (editor or $EDITOR) and 'default' (system default, always offered last)
+
 #-- Directory Editor
 # 
 dir_editor = ""
@@ -183,3 +188,9 @@ zoxide_support = false
 #   pdf = "zathura"
 #   conf = "nvim"
 [open_with]
+
+#-- File types with their own editor lists (E / F4)
+# The first file type that has the extension is used. Other textual files use 'editors'.
+[file_types.code]
+extensions = ['go', 'py', 'js', 'ts', 'jsx', 'tsx', 'c', 'h', 'cpp', 'hpp', 'cs', 'java', 'rs', 'rb', 'php', 'sh', 'bash', 'zsh', 'lua', 'kt', 'swift', 'scala', 'sql', 'json', 'yaml', 'yml', 'toml', 'xml', 'html', 'css', 'scss']
+editors = ['code']

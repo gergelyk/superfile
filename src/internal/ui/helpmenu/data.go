@@ -284,6 +284,16 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 			hotkeyWorkType: normalType,
 		},
 		{
+			hotkey:         common.Hotkeys.ViewFile,
+			description:    "View file in a browser window (text, images, Excalidraw, Mermaid, draw.io)",
+			hotkeyWorkType: normalType,
+		},
+		{
+			hotkey:         common.Hotkeys.OpenWithEditor,
+			description:    "Open item with an external editor (choose if there are several)",
+			hotkeyWorkType: normalType,
+		},
+		{
 			hotkey:         common.Hotkeys.OpenCurrentDirectoryWithEditor,
 			description:    "Open current directory with default editor",
 			hotkeyWorkType: normalType,
