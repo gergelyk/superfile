@@ -13,14 +13,16 @@ const minWidth = 30
 
 type Model struct {
 	open   bool
+	Title  string
 	Items  []string
 	Cursor int
 	Width  int
 	Height int
 }
 
-func (m *Model) Open(items []string) {
+func (m *Model) Open(title string, items []string) {
 	m.open = true
+	m.Title = title
 	m.Items = items
 	m.Cursor = 0
 	m.Width = minWidth
@@ -60,7 +62,7 @@ func (m *Model) SelectNumber(n int) bool {
 
 func (m *Model) Render() string {
 	var sb strings.Builder
-	sb.WriteString(common.ModalTitleStyle.Render(" Open with") + "\n\n")
+	sb.WriteString(common.ModalTitleStyle.Render(" "+m.Title) + "\n\n")
 	for i, it := range m.Items {
 		cursor := " "
 		if i == m.Cursor {

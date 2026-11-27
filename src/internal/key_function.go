@@ -281,6 +281,8 @@ func (m *model) filePanelSelectModeKey(msg string) tea.Cmd {
 			return m.startBulkRename()
 		}
 		m.panelItemRename()
+	case slices.Contains(common.Hotkeys.FilePanelItemRenameCase, msg):
+		m.openCaseRenamePicker()
 	case slices.Contains(common.Hotkeys.SearchBar, msg):
 		m.searchBarFocus()
 	case slices.Contains(common.Hotkeys.CopyPath, msg):
@@ -305,6 +307,8 @@ func (m *model) filePanelNormalModeKey(msg string) tea.Cmd {
 		m.copySingleItem(true)
 	case slices.Contains(common.Hotkeys.FilePanelItemRename, msg):
 		m.panelItemRename()
+	case slices.Contains(common.Hotkeys.FilePanelItemRenameCase, msg):
+		m.openCaseRenamePicker()
 	case slices.Contains(common.Hotkeys.SearchBar, msg):
 		m.searchBarFocus()
 	case slices.Contains(common.Hotkeys.CopyPath, msg):
@@ -434,7 +438,7 @@ func (m *model) sortOptionsKey(msg string) {
 func (m *model) editorPickerKey(msg string) tea.Cmd {
 	switch {
 	case slices.Contains(common.Hotkeys.QuitKeys(), msg), slices.Contains(common.Hotkeys.OpenWithEditor, msg):
-		m.editorPicker.Close()
+		m.closeEditorPicker()
 	case slices.Contains(common.Hotkeys.Confirm, msg), isSpaceKey(msg):
 		return m.confirmEditorPicker()
 	case slices.Contains(common.Hotkeys.ListUp, msg):

@@ -73,9 +73,11 @@ type model struct {
 	sortModal       sortmodel.Model
 	editorPicker    editorpicker.Model
 	pendingEditors  []editors.Editor
-	pendingEditPath string
-	spfError        spferror.Model
-	mutexErrorModal sync.Mutex
+	// Items waiting for a case to be picked in the editor picker. nil if the picker is used for editors.
+	pendingCasePaths []string
+	pendingEditPath  string
+	spfError         spferror.Model
+	mutexErrorModal  sync.Mutex
 
 	// Zoxide client for directory tracking
 	zClient *zoxidelib.Client

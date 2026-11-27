@@ -234,6 +234,11 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 			hotkeyWorkType: globalType,
 		},
 		{
+			hotkey:         common.Hotkeys.FilePanelItemRenameCase,
+			description:    "Rename selected items to snake_case, CamelCase, UPPER_CASE or dashed-name",
+			hotkeyWorkType: globalType,
+		},
+		{
 			hotkey:         common.Hotkeys.CopyItems,
 			description:    "Copy selected items to the clipboard",
 			hotkeyWorkType: globalType,

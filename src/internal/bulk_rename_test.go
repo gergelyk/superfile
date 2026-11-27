@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/yorukot/superfile/src/internal/common"
 )
 
 func TestPlanBulkRename(t *testing.T) {
@@ -69,4 +70,12 @@ func TestRenameSelectionEnd(t *testing.T) {
 	for _, tt := range tests {
 		assert.Equal(t, tt.want, renameSelectionEnd(tt.name, tt.isDir), tt.name)
 	}
+}
+
+func TestCaseRenamedName(t *testing.T) {
+	assert.Equal(t, "my_file_name.tar.gz", caseRenamedName("MyFile-Name.tar.gz", false, common.SnakeCase))
+	assert.Equal(t, "MyFileName.xyz", caseRenamedName("my_file_name.xyz", false, common.CamelCase))
+	assert.Equal(t, "MY_FILE_NAME.XYZ", caseRenamedName("my file name.xyz", false, common.UpperCase))
+	assert.Equal(t, "dashed-name.xyz", caseRenamedName("dashedName.xyz", false, common.DashedCase))
+	assert.Equal(t, "my-dir-d", caseRenamedName("My.Dir.d", true, common.DashedCase))
 }

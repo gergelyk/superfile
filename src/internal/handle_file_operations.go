@@ -625,13 +625,18 @@ func (m *model) openWithEditor() tea.Cmd {
 	}
 	m.pendingEditors = list
 	m.pendingEditPath = item.Location
-	m.editorPicker.Open(names)
+	m.editorPicker.Open("Open with", names)
 	return nil
 }
 
 func (m *model) confirmEditorPicker() tea.Cmd {
 	idx := m.editorPicker.Cursor
-	m.editorPicker.Close()
+	casePaths := m.pendingCasePaths
+	m.closeEditorPicker()
+	if casePaths != nil {
+		m.applyCaseRename(casePaths, idx)
+		return nil
+	}
 	if idx >= len(m.pendingEditors) {
 		return nil
 	}
