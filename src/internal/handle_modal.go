@@ -124,6 +124,7 @@ func (m *model) cancelRename() {
 	panel := m.getFocusedFilePanel()
 	panel.Rename.Blur()
 	panel.Renaming = false
+	panel.RenameSelected = false
 	m.fileModel.Renaming = false
 }
 
@@ -150,6 +151,7 @@ func (m *model) confirmRename() {
 	m.fileModel.Renaming = false
 	panel.Rename.Blur()
 	panel.Renaming = false
+	panel.RenameSelected = false
 }
 
 func (m *model) confirmSortOptions() {

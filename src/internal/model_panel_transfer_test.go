@@ -1,6 +1,8 @@
 package internal
 
 import (
+	tea "charm.land/bubbletea/v2"
+
 	"os"
 	"path/filepath"
 	"strings"
@@ -56,6 +58,7 @@ func TestTransferToPanel(t *testing.T) {
 	t.Run("Copy with number", func(t *testing.T) {
 		p := setup(t)
 		p.SendKey("2")
+		p.Send(tea.KeyPressMsg{Code: tea.KeyEnter})
 		assert.Eventually(t, func() bool {
 			_, err := os.Lstat(filepath.Join(dir2, "file1.txt"))
 			return err == nil
@@ -66,6 +69,7 @@ func TestTransferToPanel(t *testing.T) {
 	t.Run("Move with shift+number", func(t *testing.T) {
 		p := setup(t)
 		p.SendKey("@")
+		p.Send(tea.KeyPressMsg{Code: tea.KeyEnter})
 		assert.Eventually(t, func() bool {
 			_, err := os.Lstat(filepath.Join(dir2, "file1.txt"))
 			return err == nil
@@ -112,6 +116,7 @@ func TestTransferDoesNotOverwrite(t *testing.T) {
 		utils.SetupFilesWithData(t, []byte("old"), existing)
 		p := NewTestTeaProgWithEventLoop(t, defaultTestModel(dir1, dir2))
 		p.SendKey(key)
+		p.Send(tea.KeyPressMsg{Code: tea.KeyEnter})
 		renamed := filepath.Join(dir2, "file1(1).txt")
 		assert.Eventually(t, func() bool {
 			_, err := os.Lstat(renamed)

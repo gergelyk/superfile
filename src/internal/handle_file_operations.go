@@ -75,6 +75,13 @@ func (m *model) panelCreateNewFile() {
 	m.firstTextInput = true
 }
 
+// Open the typing modal prefilled with a trailing separator, so that a folder is created
+func (m *model) panelCreateNewDir() {
+	m.panelCreateNewFile()
+	m.typingModal.textInput.SetValue(string(filepath.Separator))
+	m.typingModal.textInput.SetCursor(0)
+}
+
 // TODO : This function does not needs the entire model. Only pass the panel object
 func (m *model) IsRenamingConflicting() bool {
 	// TODO : Replace this with m.getCurrentFilePanel() everywhere
@@ -132,6 +139,8 @@ func (m *model) panelItemRename() {
 
 	m.fileModel.Renaming = true
 	panel.Renaming = true
+	panel.RenameSelected = true
+	panel.RenameSelectEnd = cursorPos
 	m.firstTextInput = true
 	// TODO: Don't re-create a new model on each rename. Don't create
 	// unnecessary gargage for collection. Reuse the existing model.
@@ -280,8 +289,18 @@ func (m *model) getPasteItemCmd() tea.Cmd {
 // the cursor in browser mode) of the focused panel to the panel at targetIndex,
 // bypassing the clipboard.
 func (m *model) getTransferToPanelCmd(targetIndex int, cut bool) tea.Cmd {
-	if targetIndex >= m.fileModel.PanelCount() || targetIndex == m.fileModel.FocusedPanelIndex {
+	items, targetLocation := m.getTransferItemsAndTarget(targetIndex)
+	if len(items) == 0 {
 		return nil
+	}
+	return m.getPasteCmdTo(targetLocation, items, cut)
+}
+
+// getTransferItemsAndTarget returns the items to transfer and the destination.
+// Items are empty if there is nothing to do.
+func (m *model) getTransferItemsAndTarget(targetIndex int) ([]string, string) {
+	if targetIndex >= m.fileModel.PanelCount() || targetIndex == m.fileModel.FocusedPanelIndex {
+		return nil, ""
 	}
 	panel := m.getFocusedFilePanel()
 	var items []string
@@ -292,13 +311,52 @@ func (m *model) getTransferToPanelCmd(targetIndex int, cut bool) tea.Cmd {
 		items = []string{panel.GetFocusedItem().Location}
 	}
 	if len(items) == 0 {
-		return nil
+		return nil, ""
 	}
 	targetLocation := m.fileModel.FilePanels[targetIndex].Location
 	if filepath.Clean(targetLocation) == filepath.Clean(panel.Location) {
+		return nil, ""
+	}
+	return items, targetLocation
+}
+
+// pendingTransfer is a copy or move to another panel that awaits confirmation
+type pendingTransfer struct {
+	targetIndex int
+	cut         bool
+}
+
+// askTransferToNextPanel asks for confirmation to copy or move items to the
+// next panel, wrapping around
+func (m *model) askTransferToNextPanel(cut bool) {
+	count := m.fileModel.PanelCount()
+	if count < 2 { //nolint:mnd // a single panel has no other panel
+		return
+	}
+	m.askTransferToPanel((m.fileModel.FocusedPanelIndex+1)%count, cut)
+}
+
+// askTransferToPanel asks for confirmation to copy or move items to the panel at targetIndex
+func (m *model) askTransferToPanel(targetIndex int, cut bool) {
+	items, target := m.getTransferItemsAndTarget(targetIndex)
+	if len(items) == 0 {
+		return
+	}
+	m.pendingTransfer = &pendingTransfer{targetIndex: targetIndex, cut: cut}
+	verb := "Copy"
+	if cut {
+		verb = "Move"
+	}
+	m.showNotify(fmt.Sprintf("%s %d items?", verb, len(items)), "To: "+target, notify.TransferAction)
+}
+
+func (m *model) confirmTransfer() tea.Cmd {
+	t := m.pendingTransfer
+	m.pendingTransfer = nil
+	if t == nil {
 		return nil
 	}
-	return m.getPasteCmdTo(targetLocation, items, cut)
+	return m.getTransferToPanelCmd(t.targetIndex, t.cut)
 }
 
 func (m *model) getPasteCmdTo(panelLocation string, copyItems []string, cut bool) tea.Cmd {
@@ -536,6 +594,13 @@ func (m *model) openFileWithEditor() tea.Cmd {
 		slog.Error("Error while writing to chooser file, continuing with open via file editor", "error", err)
 	}
 
+	return tea.ExecProcess(editorCommand(panel.GetFocusedItem().Location), func(err error) tea.Msg {
+		return editorFinishedMsg{err}
+	})
+}
+
+// editorCommand builds a command that opens path with the configured editor
+func editorCommand(path string) *exec.Cmd {
 	editor := common.Config.Editor
 	if editor == "" {
 		editor = os.Getenv("EDITOR")
@@ -555,13 +620,9 @@ func (m *model) openFileWithEditor() tea.Cmd {
 	cmd := parts[0]
 
 	//nolint:gocritic // appendAssign: intentionally creating a new slice
-	args := append(parts[1:], panel.GetFocusedItem().Location)
+	args := append(parts[1:], path)
 
-	c := exec.Command(cmd, args...) //nolint:gosec // Editor command is intentionally user-configurable.
-
-	return tea.ExecProcess(c, func(err error) tea.Msg {
-		return editorFinishedMsg{err}
-	})
+	return exec.Command(cmd, args...) //nolint:gosec // Editor command is intentionally user-configurable.
 }
 
 // Open directory with default editor

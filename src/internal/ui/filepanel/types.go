@@ -37,6 +37,8 @@ type Model struct {
 	DirectoryRecords   map[string]directoryRecord
 	Rename             textinput.Model
 	Renaming           bool
+	RenameSelected     bool // name up to RenameSelectEnd is selected; typing replaces it
+	RenameSelectEnd    int  // selection end in runes. The file extension is not selected
 	SearchBar          textinput.Model
 	LastTimeGetElement time.Time
 	TargetFile         string             // filename to position cursor on after load

@@ -47,7 +47,7 @@ func (m *Model) GetConfirmAction() ConfirmActionType {
 // TODO: Remove code duplication with typineModalRender
 func (m *Model) Render() string {
 	var inputKeysText string
-	if m.confirmAction == NoAction {
+	if m.confirmAction == NoAction || m.confirmAction == BulkRenameRetryAction {
 		inputKeysText = common.ModalOkayInputText
 	} else {
 		inputKeysText = common.ModalConfirmInputText + common.ModalInputSpacingText + common.ModalCancelInputText

@@ -62,6 +62,8 @@ type model struct {
 
 	// Modals
 	notifyModel     notify.Model
+	bulkRename      *bulkRenameState
+	pendingTransfer *pendingTransfer
 	typingModal     typingModal
 	helpMenu        helpmenu.Model
 	promptModal     prompt.Model

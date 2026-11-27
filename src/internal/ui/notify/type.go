@@ -8,4 +8,7 @@ const (
 	QuitAction
 	NoAction
 	PermanentDeleteAction
+	BulkRenameAction
+	TransferAction
+	BulkRenameRetryAction
 )

@@ -139,8 +139,9 @@ func (m *Model) GetFilePreviewCmd(forcePreviewRender bool) tea.Cmd {
 	// Unfortunately, previewPanel isn't completely 'under' fileModel
 	// Note: Must save the dimensions for the closure of the Cmd to avoid
 	// problems
-	fullModalWidth := m.Width + m.SidebarTotalWidth
 	width := m.ExpectedPreviewWidth
+	// The preview is the leftmost panel, so only the sidebar is left of it
+	fullModalWidth := m.SidebarTotalWidth + width
 	height := m.Height
 
 	reqCnt := m.ioReqCnt

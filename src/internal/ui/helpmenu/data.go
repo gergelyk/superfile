@@ -214,8 +214,13 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 			hotkeyWorkType: globalType,
 		},
 		{
+			hotkey:         common.Hotkeys.FilePanelDirCreate,
+			description:    "Create folder",
+			hotkeyWorkType: globalType,
+		},
+		{
 			hotkey:         common.Hotkeys.FilePanelItemRename,
-			description:    "Rename file or folder",
+			description:    "Rename file or folder (bulk rename in an editor if multiple items are selected)",
 			hotkeyWorkType: globalType,
 		},
 		{
@@ -226,6 +231,16 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 		{
 			hotkey:         common.Hotkeys.CutItems,
 			description:    "Cut selected items to the clipboard",
+			hotkeyWorkType: globalType,
+		},
+		{
+			hotkey:         common.Hotkeys.CopyToNextPanel,
+			description:    "Copy selected items to the next file panel",
+			hotkeyWorkType: globalType,
+		},
+		{
+			hotkey:         common.Hotkeys.MoveToNextPanel,
+			description:    "Move selected items to the next file panel",
 			hotkeyWorkType: globalType,
 		},
 		{

@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	CurrentVersion = "v1.6.0"
+	CurrentVersion = "v1.7.0"
 	// Allowing pre-releases with non production version
 	// Set this to "" for production releases
 	PreReleaseSuffix = ""

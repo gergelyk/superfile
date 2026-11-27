@@ -122,6 +122,12 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 
 	case slices.Contains(common.Hotkeys.FilePanelItemCreate, msg):
 		m.panelCreateNewFile()
+	case slices.Contains(common.Hotkeys.FilePanelDirCreate, msg):
+		m.panelCreateNewDir()
+	case m.focusPanel == nonePanelFocus && slices.Contains(common.Hotkeys.CopyToNextPanel, msg):
+		m.askTransferToNextPanel(false)
+	case m.focusPanel == nonePanelFocus && slices.Contains(common.Hotkeys.MoveToNextPanel, msg):
+		m.askTransferToNextPanel(true)
 	case slices.Contains(common.Hotkeys.PinnedDirectory, msg):
 		m.pinnedDirectory()
 
@@ -161,7 +167,7 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 
 	case m.focusPanel == nonePanelFocus && isPanelTransferKey(msg):
 		idx, cut := panelTransferTarget(msg)
-		return m.getTransferToPanelCmd(idx, cut)
+		m.askTransferToPanel(idx, cut)
 
 	default:
 		return m.normalAndBrowserModeKey(msg)
@@ -253,6 +259,11 @@ func (m *model) filePanelSelectModeKey(msg string) tea.Cmd {
 		m.copyMultipleItem(false)
 	case slices.Contains(common.Hotkeys.CutItems, msg):
 		m.copyMultipleItem(true)
+	case slices.Contains(common.Hotkeys.FilePanelItemRename, msg):
+		if panel.SelectedCount() > 1 {
+			return m.startBulkRename()
+		}
+		m.panelItemRename()
 	case slices.Contains(common.Hotkeys.SearchBar, msg):
 		m.searchBarFocus()
 	case slices.Contains(common.Hotkeys.CopyPath, msg):
@@ -318,6 +329,12 @@ func (m *model) handleNotifyModelCancel(action notify.ConfirmActionType) tea.Cmd
 	switch action {
 	case notify.RenameAction:
 		m.cancelRename()
+	case notify.BulkRenameAction:
+		m.bulkRename = nil
+	case notify.TransferAction:
+		m.pendingTransfer = nil
+	case notify.BulkRenameRetryAction:
+		return m.reopenBulkRenameEditor()
 	case notify.QuitAction:
 		m.modelQuitState = notQuitting
 	case notify.DeleteAction, notify.NoAction, notify.PermanentDeleteAction:
@@ -336,6 +353,12 @@ func (m *model) handleNotifyModelConfirm(action notify.ConfirmActionType) tea.Cm
 		return m.getDeleteCmd(true)
 	case notify.RenameAction:
 		m.confirmRename()
+	case notify.BulkRenameAction:
+		m.applyBulkRename()
+	case notify.TransferAction:
+		return m.confirmTransfer()
+	case notify.BulkRenameRetryAction:
+		return m.reopenBulkRenameEditor()
 	case notify.QuitAction:
 		m.modelQuitState = quitConfirmationReceived
 	case notify.NoAction:

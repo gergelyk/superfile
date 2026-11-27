@@ -168,7 +168,8 @@ func TestFileRename(t *testing.T) {
 		setFilePanelSelectedItemByLocation(t, m.getFocusedFilePanel(), file1)
 
 		p.SendKey(common.Hotkeys.FilePanelItemRename[0])
-		p.SendKey("_new")
+		p.Send(tea.KeyPressMsg{Code: tea.KeyBackspace})
+		p.SendKey("file1_new")
 		p.Send(tea.KeyPressMsg{Code: tea.KeyEnter})
 
 		assert.Eventually(t, func() bool {
@@ -186,7 +187,7 @@ func TestFileRename(t *testing.T) {
 
 			p.SendKey(common.Hotkeys.FilePanelItemRename[0])
 			p.Send(tea.KeyPressMsg{Code: tea.KeyBackspace})
-			p.SendKey("2")
+			p.SendKey("file2")
 			p.Send(tea.KeyPressMsg{Code: tea.KeyEnter})
 
 			require.Eventually(t, func() bool {

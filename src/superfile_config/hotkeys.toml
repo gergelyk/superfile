@@ -45,7 +45,8 @@ focus_on_sidebar = ['s', '']
 
 #-- File/Dir Creation/Renaming
 file_panel_item_create = ['ctrl+n', '']
-file_panel_item_rename = ['ctrl+r', '']
+file_panel_dir_create = ['f7', '']
+file_panel_item_rename = ['ctrl+r', 'f2', '']
 
 #-- Main File Operations
 copy_items = ['ctrl+c', '']
@@ -53,6 +54,8 @@ cut_items = ['ctrl+x', '']
 delete_items = ['ctrl+d', 'delete', '']
 paste_items = ['ctrl+v', 'ctrl+w', '']
 permanently_delete_items = ['D', '']
+copy_to_next_panel = ['f5', '']
+move_to_next_panel = ['f6', '']
 
 #-- Archive Manipulation
 compress_file = ['ctrl+a', '']
@@ -79,7 +82,7 @@ toggle_footer = ['F', '']
 # Note: These hotkeys can override all hotkeys.
 
 confirm_typing = ['enter', '']
-cancel_typing = ['ctrl+c', 'esc']
+cancel_typing = ['esc', 'ctrl+c']
 
 ###############################################################################
 #                            Mode-Specific Hotkeys                            #

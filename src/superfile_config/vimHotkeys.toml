@@ -47,7 +47,8 @@ focus_on_metadata = ['ctrl+d', '']
 
 #-- File/Dir Creation/Renaming
 file_panel_item_create = ['a', '']
-file_panel_item_rename = ['r', '']
+file_panel_dir_create = ['f7', '']
+file_panel_item_rename = ['r', 'f2', '']
 
 #-- Main File Operations
 copy_items = ['y', '']
@@ -55,6 +56,8 @@ cut_items = ['x', '']
 paste_items = ['p', '']
 delete_items = ['d', '']
 permanently_delete_items = ['D', '']
+copy_to_next_panel = ['f5', '']
+move_to_next_panel = ['f6', '']
 
 #-- Archive Manipulation
 extract_file = ['ctrl+e', '']

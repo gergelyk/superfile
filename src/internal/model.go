@@ -392,7 +392,9 @@ func (m *model) updateComponentState(msg tea.Msg) tea.Cmd {
 	case m.firstTextInput:
 		m.firstTextInput = false
 	case m.fileModel.Renaming:
-		focusPanel.Rename, cmd = focusPanel.Rename.Update(msg)
+		if !m.handleRenameSelection(focusPanel, msg) {
+			focusPanel.Rename, cmd = focusPanel.Rename.Update(msg)
+		}
 	case focusPanel.SearchBar.Focused():
 		focusPanel.SearchBar, cmd = focusPanel.SearchBar.Update(msg)
 	case m.typingModal.open:

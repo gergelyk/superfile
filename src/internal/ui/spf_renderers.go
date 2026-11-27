@@ -46,6 +46,9 @@ func FilePanelRenderer(totalHeight int, totalWidth int, filePanelFocused bool) *
 	return r
 }
 
+// previewTitleMinWidth is the minimum panel width that shows the "Preview" title
+const previewTitleMinWidth = 16
+
 func FilePreviewPanelRenderer(totalHeight int, totalWidth int) *rendering.Renderer {
 	cfg := rendering.DefaultRendererConfig(totalHeight, totalWidth)
 	cfg.ContentFGColor = common.FilePanelFGColor
@@ -60,6 +63,10 @@ func FilePreviewPanelRenderer(totalHeight int, totalWidth int) *rendering.Render
 	cfg.RendererName += "-preview"
 
 	r := rendering.NewRendererWithAutoFixConfig(cfg)
+	// Skip the title in very narrow panels, where it would fill the whole border
+	if common.Config.EnableFilePreviewBorder && totalWidth >= previewTitleMinWidth {
+		r.SetBorderTitle("Preview")
+	}
 	return r
 }
 

@@ -4,10 +4,10 @@ import "charm.land/lipgloss/v2"
 
 func (m *Model) Render() string {
 	f := make([]string, m.PanelCount()+1)
+	f[0] = m.GetFilePreviewRender()
 	for i, filePanel := range m.FilePanels {
-		f[i] = filePanel.Render(filePanel.IsFocused, i)
+		f[i+1] = filePanel.Render(filePanel.IsFocused, i)
 	}
-	f[m.PanelCount()] = m.GetFilePreviewRender()
 	return lipgloss.JoinHorizontal(lipgloss.Top, f...)
 }
 

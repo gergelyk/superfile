@@ -303,6 +303,9 @@ func (m *model) validateFinalRender() error {
 
 	filePanelColStart := 0
 	filePanelColStart += m.sidebarTotalWidth()
+	if m.fileModel.FilePreview.IsOpen() {
+		filePanelColStart += m.fileModel.ExpectedPreviewWidth
+	}
 	for i := range m.fileModel.FilePanels {
 		panel := &m.fileModel.FilePanels[i]
 		panelPos := compPosition{
@@ -322,8 +325,8 @@ func (m *model) validateFinalRender() error {
 		previewPanelPos := compPosition{
 			stRow:  0,
 			endRow: m.mainPanelHeight + 1,
-			stCol:  m.fullWidth - m.fileModel.ExpectedPreviewWidth,
-			endCol: m.fullWidth - 1,
+			stCol:  m.sidebarTotalWidth(),
+			endCol: m.sidebarTotalWidth() + m.fileModel.ExpectedPreviewWidth - 1,
 		}
 		if err := m.validateComponentPlacement(
 			lines,

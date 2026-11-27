@@ -30,6 +30,7 @@ var (
 
 var (
 	FilePanelCursorStyle lipgloss.Style
+	RenameSelectionStyle lipgloss.Style
 	FooterCursorStyle    lipgloss.Style
 	ModalCursorStyle     lipgloss.Style
 )
@@ -185,6 +186,7 @@ func LoadThemeConfig() { //nolint: funlen // Variable initialization
 
 	// Cursor
 	FilePanelCursorStyle = lipgloss.NewStyle().Foreground(cursorColor).Background(FilePanelBGColor)
+	RenameSelectionStyle = lipgloss.NewStyle().Foreground(ModalBGColor).Background(cursorColor)
 	FooterCursorStyle = lipgloss.NewStyle().Foreground(cursorColor).Background(FooterBGColor)
 	ModalCursorStyle = lipgloss.NewStyle().Foreground(cursorColor).Background(ModalBGColor)
 

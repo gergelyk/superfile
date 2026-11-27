@@ -98,7 +98,7 @@ func (m *Model) renderFileEntries(r *rendering.Renderer) {
 
 	for itemIndex := m.renderIndex; itemIndex < end; itemIndex++ {
 		if m.Renaming && itemIndex == m.GetCursor() {
-			r.AddLines(m.Rename.View())
+			r.AddLines(m.renderRenameInput())
 			continue
 		}
 		var builder strings.Builder
@@ -160,4 +160,14 @@ func (m *Model) NeedsReRender() bool {
 		return filepath.Dir(m.GetFirstElement().Location) != m.Location
 	}
 	return true
+}
+
+func (m *Model) renderRenameInput() string {
+	if !m.RenameSelected {
+		return m.Rename.View()
+	}
+	runes := []rune(m.Rename.Value())
+	end := min(m.RenameSelectEnd, len(runes))
+	return m.Rename.Prompt + common.RenameSelectionStyle.Render(string(runes[:end])) +
+		common.ModalStyle.Render(string(runes[end:]))
 }
