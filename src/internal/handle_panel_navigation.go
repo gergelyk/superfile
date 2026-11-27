@@ -59,21 +59,50 @@ func (m *model) focusOnMetadata() {
 	}
 }
 
-// focusFilePanelAt focuses the file panel under the given screen cell, if any.
-// Clicks are ignored while a modal is open.
-func (m *model) focusFilePanelAt(x, y int) {
-	if m.anyModalOpen() || y >= m.mainPanelHeight+common.BorderPadding {
+// focusRegionAt focuses the region (sidebar, file panel, process bar or metadata)
+// under the given screen cell, if any. Clicks are ignored while a modal is open.
+func (m *model) focusRegionAt(x, y int) {
+	if m.anyModalOpen() {
+		return
+	}
+	mainPanelEnd := m.mainPanelHeight + common.BorderPadding
+	if y >= mainPanelEnd {
+		if m.toggleFooter && y < m.fullHeight-1 {
+			m.focusFooterAt(x)
+		}
 		return
 	}
 	if m.sidebarVisible() {
+		if x < m.sidebarModel.GetWidth() {
+			m.setRegionFocus(sidebarFocus)
+			return
+		}
 		x -= m.sidebarModel.GetWidth()
 	}
 	index := m.fileModel.PanelIndexAtX(x)
 	if index < 0 {
 		return
 	}
-	m.focusPanel = nonePanelFocus
+	m.setRegionFocus(nonePanelFocus)
 	m.fileModel.FocusPanel(index)
+}
+
+// focusFooterAt focuses the footer component at screen column x.
+// The footer is laid out as process bar, metadata and clipboard.
+func (m *model) focusFooterAt(x int) {
+	processBarEnd := m.processBarModel.GetWidth()
+	switch {
+	case x < processBarEnd:
+		m.setRegionFocus(processBarFocus)
+	case x < processBarEnd+m.fileMetaData.GetWidth():
+		m.setRegionFocus(metadataFocus)
+	}
+}
+
+// setRegionFocus moves focus to the given region. nonePanelFocus means a file panel.
+func (m *model) setRegionFocus(region focusPanelType) {
+	m.focusPanel = region
+	m.getFocusedFilePanel().IsFocused = region == nonePanelFocus
 }
 
 func (m *model) anyModalOpen() bool {

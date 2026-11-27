@@ -122,7 +122,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m *model) handleMouseMsg(msg tea.MouseMsg) {
 	if click, ok := msg.(tea.MouseClickMsg); ok && click.Button == tea.MouseLeft {
-		m.focusFilePanelAt(click.X, click.Y)
+		m.focusRegionAt(click.X, click.Y)
 		return
 	}
 	msgStr := msg.String()
