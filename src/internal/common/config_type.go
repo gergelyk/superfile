@@ -47,9 +47,6 @@ type ThemeType struct {
 	FilePanelTopPath          string `toml:"file_panel_top_path"`
 	FilePanelItemSelectedFG   string `toml:"file_panel_item_selected_fg"`
 	FilePanelItemSelectedBG   string `toml:"file_panel_item_selected_bg"`
-	FilePanelDirFG            string `toml:"file_panel_dir_fg"`
-	FilePanelExecutableFG     string `toml:"file_panel_executable_fg"`
-	FilePanelSymlinkFG        string `toml:"file_panel_symlink_fg"`
 
 	// Sidebar Special Items
 	SidebarTitle          string `toml:"sidebar_title"`

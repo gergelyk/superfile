@@ -25,18 +25,14 @@ func (m *Model) renderFileName(indexElement int, columnWidth int) string {
 	// Calculate the actual prefix width for proper alignment
 	prefixWidth := ansi.StringWidth(cursor+" ") + ansi.StringWidth(selectBox)
 	isLink := false
-	isExecutable := false
 	if elem.Info != nil {
-		mode := elem.Info.Mode()
-		isLink = mode&os.ModeSymlink != 0
-		isExecutable = mode.IsRegular() && mode&executableBits != 0
+		isLink = elem.Info.Mode()&os.ModeSymlink != 0
 	}
 	renderedName := common.FilePanelItemRenderWithIcon(
 		elem.Name,
 		columnWidth-prefixWidth,
 		elem.Directory,
 		isLink,
-		isExecutable,
 		isSelected,
 		common.FilePanelBGColor,
 	)

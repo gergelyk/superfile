@@ -83,7 +83,6 @@ func FilePanelItemRenderWithIcon(
 	width int,
 	isDir bool,
 	isLink bool,
-	isExecutable bool,
 	isSelected bool,
 	bgColor color.Color,
 ) string {
@@ -97,40 +96,16 @@ func FilePanelItemRenderWithIcon(
 	}
 	return StringColorRender(lipgloss.Color(style.Color), bgColor).
 		Background(bgColor).Render(iconData) +
-		filePanelItemRender(name, filenameWidth, filePanelNameBaseStyle(isDir, isLink, isExecutable),
-			isSelected, bgColor, lipgloss.Left)
+		FilePanelItemRender(name, filenameWidth, isSelected, bgColor, lipgloss.Left)
 }
-
-// Symlinks take precedence over directories, which take precedence over executables.
-func filePanelNameBaseStyle(isDir, isLink, isExecutable bool) lipgloss.Style {
-	switch {
-	case isLink:
-		return FilePanelSymlinkStyle
-	case isDir:
-		return FilePanelDirStyle
-	case isExecutable:
-		return FilePanelExecutableStyle
-	}
-	return FilePanelStyle
-}
-
 func FilePanelItemRender(data string,
 	width int,
 	isSelected bool,
 	bgColor color.Color,
 	alignment lipgloss.Position,
 ) string {
-	return filePanelItemRender(data, width, FilePanelStyle, isSelected, bgColor, alignment)
-}
-
-func filePanelItemRender(data string,
-	width int,
-	style lipgloss.Style,
-	isSelected bool,
-	bgColor color.Color,
-	alignment lipgloss.Position,
-) string {
 	outputData := ansi.Truncate(data, width, "...")
+	style := FilePanelStyle
 	if isSelected {
 		style = FilePanelItemSelectedStyle
 	}
