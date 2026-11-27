@@ -60,9 +60,9 @@ func (s *Model) ConfirmSidebarRename() {
 func (s *Model) UpdateState(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	if s.renaming {
-		s.rename, cmd = s.rename.Update(msg)
+		s.rename, cmd = common.UpdateTextInput(s.rename, msg)
 	} else if s.searchBar.Focused() {
-		s.searchBar, cmd = s.searchBar.Update(msg)
+		s.searchBar, cmd = common.UpdateTextInput(s.searchBar, msg)
 	}
 
 	if s.cursor < 0 {

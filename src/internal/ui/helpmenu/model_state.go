@@ -76,7 +76,7 @@ func (m *Model) handleNavKeys(msg string) {
 func (m *Model) HandleTeaMsg(msg tea.Msg) tea.Cmd {
 	var cmd tea.Cmd
 	if m.searchBar.Focused() {
-		m.searchBar, cmd = m.searchBar.Update(msg)
+		m.searchBar, cmd = common.UpdateTextInput(m.searchBar, msg)
 	}
 	return cmd
 }

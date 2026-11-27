@@ -58,7 +58,7 @@ func (m *Model) HandleUpdate(msg tea.Msg, cwdLocation string) (common.ModelActio
 		}
 	default:
 		// Non keypress updates like Cursor Blink
-		m.textInput, cmd = m.textInput.Update(msg)
+		m.textInput, cmd = common.UpdateTextInput(m.textInput, msg)
 	}
 	return action, cmd
 }
@@ -96,7 +96,7 @@ func (m *Model) handleNormalKeyInput(msg tea.KeyPressMsg) tea.Cmd {
 	case m.textInput.Value() == "" && msg.String() == m.shellPromptHotkey:
 		m.setShellMode(true)
 	default:
-		m.textInput, cmd = m.textInput.Update(msg)
+		m.textInput, cmd = common.UpdateTextInput(m.textInput, msg)
 	}
 	m.resultMsg = ""
 	m.actionSuccess = true

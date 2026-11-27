@@ -81,7 +81,7 @@ func (m *Model) HandleUpdate(msg tea.Msg) (common.ModelAction, tea.Cmd) {
 		// Non keypress updates like Cursor Blink
 		// Only update text input if zoxide is available
 		if m.zClient != nil {
-			m.textInput, cmd = m.textInput.Update(msg)
+			m.textInput, cmd = common.UpdateTextInput(m.textInput, msg)
 		}
 	}
 	return action, cmd
@@ -102,7 +102,7 @@ func (m *Model) handleConfirm() common.ModelAction {
 
 func (m *Model) handleNormalKeyInput(msg tea.KeyPressMsg) tea.Cmd {
 	var cmd tea.Cmd
-	m.textInput, cmd = m.textInput.Update(msg)
+	m.textInput, cmd = common.UpdateTextInput(m.textInput, msg)
 	return tea.Batch(cmd, m.GetQueryCmd(m.textInput.Value()))
 }
 

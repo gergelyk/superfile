@@ -408,12 +408,12 @@ func (m *model) updateComponentState(msg tea.Msg) tea.Cmd {
 		m.firstTextInput = false
 	case m.fileModel.Renaming:
 		if !m.handleRenameSelection(focusPanel, msg) {
-			focusPanel.Rename, cmd = focusPanel.Rename.Update(msg)
+			focusPanel.Rename, cmd = common.UpdateTextInput(focusPanel.Rename, msg)
 		}
 	case focusPanel.SearchBar.Focused():
-		focusPanel.SearchBar, cmd = focusPanel.SearchBar.Update(msg)
+		focusPanel.SearchBar, cmd = common.UpdateTextInput(focusPanel.SearchBar, msg)
 	case m.typingModal.open:
-		m.typingModal.textInput, cmd = m.typingModal.textInput.Update(msg)
+		m.typingModal.textInput, cmd = common.UpdateTextInput(m.typingModal.textInput, msg)
 	case m.promptModal.IsOpen():
 		// TODO : Separate this to a utility
 		cwdLocation := m.getFocusedFilePanel().Location
