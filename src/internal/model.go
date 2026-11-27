@@ -422,8 +422,17 @@ func (m *model) updateComponentState(msg tea.Msg) tea.Cmd {
 			*in, cmd = common.UpdateTextInput(*in, msg)
 			m.regexRename.update()
 		}
+	case m.typingModal.open && m.typingModal.topDirFocused:
+		// the checkbox is handled in typingModalOpenKey
 	case m.typingModal.open:
-		m.typingModal.textInput, cmd = common.UpdateTextInput(m.typingModal.textInput, msg)
+		oldValue := m.typingModal.textInput.Value()
+		if !handleNameSelection(&m.typingModal.textInput, &m.typingModal.nameSelected,
+			m.typingModal.nameSelectEnd, msg) {
+			m.typingModal.textInput, cmd = common.UpdateTextInput(m.typingModal.textInput, msg)
+		}
+		if m.typingModal.textInput.Value() != oldValue {
+			m.typingModal.err = ""
+		}
 	case m.promptModal.IsOpen():
 		// TODO : Separate this to a utility
 		cwdLocation := m.getFocusedFilePanel().Location
@@ -677,7 +686,7 @@ func (m *model) updateRenderForOverlay(finalRender string) string {
 	if m.typingModal.open {
 		typingModal := m.typineModalRender()
 		overlayX := m.fullWidth/common.CenterDivisor - common.ModalWidth/common.CenterDivisor
-		overlayY := m.fullHeight/common.CenterDivisor - common.ModalHeight/common.CenterDivisor
+		overlayY := m.fullHeight/common.CenterDivisor - lipgloss.Height(typingModal)/common.CenterDivisor
 		return stringfunction.PlaceOverlay(overlayX, overlayY, typingModal, finalRender)
 	}
 

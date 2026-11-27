@@ -394,6 +394,6 @@ func UniqueName(dir, name string) (string, error) {
 		if _, exists := idx.nodes[path.Join(inner, candidate)]; !exists {
 			return candidate, nil
 		}
-		candidate = fmt.Sprintf("%s(%d)%s", base, i, ext)
+		candidate = fmt.Sprintf("%s-%d%s", base, i, ext)
 	}
 }

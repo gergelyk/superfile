@@ -97,7 +97,7 @@ func TestZipSources(t *testing.T) {
 				require.NoError(t, err, "validateCompressOperation should not return error")
 			}
 
-			err = zipSources(sources, totalFiles, targetZip, &processBar)
+			err = zipSources(sources, totalFiles, targetZip, "", &processBar)
 
 			require.NoError(t, err, "zipSources should not return error")
 
@@ -153,33 +153,39 @@ func TestZipSourcesInvalidTarget(t *testing.T) {
 	invalidTarget := "/invalid/path/test.zip"
 	totalFiles, err := validateCompressOperation([]string{testFile})
 	require.NoError(t, err, "valid source generates error on validation")
-	err = zipSources([]string{testFile}, totalFiles, invalidTarget, &processBar)
+	err = zipSources([]string{testFile}, totalFiles, invalidTarget, "", &processBar)
 	require.Error(t, err, "zipSources should return error for invalid target")
 }
 
-func TestGetZipArchiveName(t *testing.T) {
-	t.Run("Ordinary file with extension", func(t *testing.T) {
-		actual, err := getZipArchiveName("test.doc")
-		require.NoError(t, err)
-		require.Equal(t, "test.zip", actual)
-	})
-	t.Run("Ordinary file without extension", func(t *testing.T) {
-		actual, err := getZipArchiveName("test")
-		require.NoError(t, err)
-		require.Equal(t, "test.zip", actual)
-	})
-	t.Run("Hidden file without extension", func(t *testing.T) {
-		actual, err := getZipArchiveName(".dockerignore")
-		require.NoError(t, err)
-		require.Equal(t, ".dockerignore.zip", actual)
-	})
-	t.Run("Hidden file with extension", func(t *testing.T) {
-		actual, err := getZipArchiveName(".dockerignore.old")
-		require.NoError(t, err)
-		require.Equal(t, ".dockerignore.zip", actual)
-	})
-	t.Run("empty filename", func(t *testing.T) {
-		_, err := getZipArchiveName("")
-		require.ErrorContains(t, err, "empty filename to compress")
-	})
+func TestDefaultZipName(t *testing.T) {
+	require.Equal(t, "photos.zip", defaultZipName(filepath.Join("home", "photos")))
+	require.Equal(t, "archive.zip", defaultZipName(string(filepath.Separator)))
+}
+
+func TestCheckZipName(t *testing.T) {
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(filepath.Join(dir, "taken.zip"), nil, 0o600))
+	require.NoError(t, checkZipName(dir, "free.zip"))
+	require.ErrorContains(t, checkZipName(dir, "taken.zip"), "already exists")
+	require.Error(t, checkZipName(dir, ""))
+	require.Error(t, checkZipName(dir, "a/b.zip"))
+}
+
+func TestZipSourcesTopDir(t *testing.T) {
+	dir := t.TempDir()
+	src := filepath.Join(dir, "src")
+	require.NoError(t, os.Mkdir(src, 0o755))
+	require.NoError(t, os.WriteFile(filepath.Join(src, "f.txt"), []byte("x"), 0o600))
+	processBar := processbar.New()
+	target := filepath.Join(dir, "out.zip")
+	require.NoError(t, zipSources([]string{src}, 1, target, "out", &processBar))
+
+	r, err := zip.OpenReader(target)
+	require.NoError(t, err)
+	defer r.Close()
+	var names []string
+	for _, f := range r.File {
+		names = append(names, f.Name)
+	}
+	require.Equal(t, []string{"out/", "out/src/", "out/src/f.txt"}, names)
 }

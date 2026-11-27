@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/yorukot/superfile/src/internal/ui/filepanel"
@@ -224,33 +225,39 @@ func executeBulkRename(dir string, changes []renameChange) []string {
 // handleRenameSelection applies selection semantics to the single item rename
 // input. It returns true if the message was consumed.
 func (m *model) handleRenameSelection(panel *filepanel.Model, msg tea.Msg) bool {
-	if !panel.RenameSelected {
+	return handleNameSelection(&panel.Rename, &panel.RenameSelected, panel.RenameSelectEnd, msg)
+}
+
+// handleNameSelection handles the keys while the name in the input is selected up to selectEnd.
+// It returns true if the key is fully handled and must not be passed to the input.
+func handleNameSelection(input *textinput.Model, selected *bool, selectEnd int, msg tea.Msg) bool {
+	if !*selected {
 		return false
 	}
 	key, ok := msg.(tea.KeyPressMsg)
 	if !ok {
 		return false
 	}
-	runes := []rune(panel.Rename.Value())
-	end := min(panel.RenameSelectEnd, len(runes))
+	runes := []rune(input.Value())
+	end := min(selectEnd, len(runes))
 	removeSelection := func() {
-		panel.Rename.SetValue(string(runes[end:]))
-		panel.Rename.SetCursor(0)
+		input.SetValue(string(runes[end:]))
+		input.SetCursor(0)
 	}
 	switch key.String() {
 	case "backspace", "delete":
 		removeSelection()
 	case "left", "home", "ctrl+left", "alt+left":
-		panel.Rename.SetCursor(0)
+		input.SetCursor(0)
 	case "right", "end", "ctrl+right", "alt+right":
-		panel.Rename.SetCursor(end)
+		input.SetCursor(end)
 	default:
 		if key.Text != "" {
 			removeSelection()
-			panel.RenameSelected = false
+			*selected = false
 		}
 		return false
 	}
-	panel.RenameSelected = false
+	*selected = false
 	return true
 }

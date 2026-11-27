@@ -78,7 +78,7 @@ func Test_renameIfDuplicate(t *testing.T) {
 	curTestDir := t.TempDir()
 	f1NonExistent := filepath.Join(curTestDir, "file.txt")
 	f2 := filepath.Join(curTestDir, "file2.txt")
-	f3 := filepath.Join(curTestDir, "file3(3).txt")
+	f3 := filepath.Join(curTestDir, "file3-3.txt")
 	d1 := filepath.Join(curTestDir, "dir1")
 
 	utils.SetupFiles(t, f2, f3)
@@ -97,17 +97,17 @@ func Test_renameIfDuplicate(t *testing.T) {
 		{
 			name:     "file exists without suffix",
 			fileName: f2,
-			want:     "file2(1).txt",
+			want:     "file2-1.txt",
 		},
 		{
 			name:     "file exists with suffix",
 			fileName: f3,
-			want:     "file3(4).txt",
+			want:     "file3-4.txt",
 		},
 		{
 			name:     "directory exists",
 			fileName: d1,
-			want:     "dir1(1)", // without extension
+			want:     "dir1-1", // without extension
 		},
 	}
 

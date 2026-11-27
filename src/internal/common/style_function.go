@@ -43,8 +43,17 @@ func FirstUseModal(height int, width int) lipgloss.Style {
 
 // Generate sort options modal border style
 func SortOptionsModalBorderStyle(height int, width int, borderBottom string) lipgloss.Style {
+	return ModalBorderStyleWithEdges(height, width, "", borderBottom)
+}
+
+// ModalBorderStyleWithEdges is like SortOptionsModalBorderStyle, and also replaces the top border if
+// borderTop is not empty. borderTop must span the whole inner width of the modal.
+func ModalBorderStyleWithEdges(height int, width int, borderTop string, borderBottom string) lipgloss.Style {
 	border := GenerateBorder()
 	border.Bottom = borderBottom
+	if borderTop != "" {
+		border.Top = borderTop
+	}
 
 	return lipgloss.NewStyle().
 		Border(border).

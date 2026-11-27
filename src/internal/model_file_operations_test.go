@@ -57,10 +57,10 @@ func TestCopy(t *testing.T) {
 
 		p.SendKey(common.Hotkeys.PasteItems[0])
 		assert.Eventually(t, func() bool {
-			_, err := os.Lstat(filepath.Join(dir2, "file1(1).txt"))
+			_, err := os.Lstat(filepath.Join(dir2, "file1-1.txt"))
 			return err == nil
 		}, DefaultTestTimeout, DefaultTestTick)
-		assert.FileExists(t, filepath.Join(dir2, "file1(1).txt"))
+		assert.FileExists(t, filepath.Join(dir2, "file1-1.txt"))
 		//TODO: Also verify if there are only 2 items in process bar
 	})
 }
@@ -147,6 +147,21 @@ func TestFileCreation(t *testing.T) {
 
 		assert.FileExists(t, filepath.Join(originalLocation, "captured.txt"))
 		assert.NoFileExists(t, filepath.Join(changedLocation, "captured.txt"))
+	})
+
+	t.Run("cursor goes to the created item", func(t *testing.T) {
+		dir := t.TempDir()
+		utils.SetupFiles(t, filepath.Join(dir, "a.txt"), filepath.Join(dir, "b.txt"))
+		m := defaultTestModel(dir)
+		TeaUpdate(m, nil)
+		m.panelCreateNewFile()
+		m.typingModal.textInput.SetValue("c.txt")
+
+		msg := m.getCreateCmd()()
+		require.IsType(t, CreateOperationMsg{}, msg)
+		msg.(CreateOperationMsg).ApplyToModel(m)
+
+		assert.Equal(t, filepath.Join(dir, "c.txt"), m.getFocusedFilePanel().GetFocusedItem().Location)
 	})
 }
 

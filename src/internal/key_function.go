@@ -236,6 +236,9 @@ func (m *model) filePanelSelectionKey(msg string) bool {
 		panel.SelectAllItem()
 	case slices.Contains(common.Hotkeys.FilePanelToggleSelectItem, msg):
 		panel.ToggleSelectFocusedItem()
+	case slices.Contains(common.Hotkeys.FilePanelToggleSelectItemNext, msg):
+		panel.ToggleSelectFocusedItem()
+		panel.ListDown()
 	default:
 		return false
 	}
@@ -263,7 +266,11 @@ func (m *model) filePanelSelectModeKey(msg string) tea.Cmd {
 
 	switch {
 	case slices.Contains(common.Hotkeys.Confirm, msg):
-		panel.SingleItemSelect()
+		panel.ResetSelected()
+		m.enterPanel()
+	case slices.Contains(common.Hotkeys.ParentDirectory, msg):
+		panel.ResetSelected()
+		m.parentDirectory()
 	case slices.Contains(common.Hotkeys.FilePanelSelectModeItemsSelectUp, msg):
 		panel.ItemSelectUp()
 	case slices.Contains(common.Hotkeys.FilePanelSelectModeItemsSelectDown, msg):
@@ -282,9 +289,7 @@ func (m *model) filePanelSelectModeKey(msg string) tea.Cmd {
 		}
 		m.panelItemRename()
 	case slices.Contains(common.Hotkeys.FilePanelItemRenameCase, msg):
-		m.openCaseRenamePicker()
-	case slices.Contains(common.Hotkeys.FilePanelItemRenameRegex, msg):
-		m.openRegexRename()
+		m.openRenameDialog()
 	case slices.Contains(common.Hotkeys.SearchBar, msg):
 		m.searchBarFocus()
 	case slices.Contains(common.Hotkeys.CopyPath, msg):
@@ -310,9 +315,7 @@ func (m *model) filePanelNormalModeKey(msg string) tea.Cmd {
 	case slices.Contains(common.Hotkeys.FilePanelItemRename, msg):
 		m.panelItemRename()
 	case slices.Contains(common.Hotkeys.FilePanelItemRenameCase, msg):
-		m.openCaseRenamePicker()
-	case slices.Contains(common.Hotkeys.FilePanelItemRenameRegex, msg):
-		m.openRegexRename()
+		m.openRenameDialog()
 	case slices.Contains(common.Hotkeys.SearchBar, msg):
 		m.searchBarFocus()
 	case slices.Contains(common.Hotkeys.CopyPath, msg):
@@ -328,7 +331,14 @@ func (m *model) typingModalOpenKey(msg string) tea.Cmd {
 	switch {
 	case slices.Contains(common.Hotkeys.CancelTyping, msg):
 		m.cancelTypingModal()
+	case m.typingModal.zipSources != nil && (msg == "tab" || msg == "shift+tab" || msg == "up" || msg == "down"):
+		m.typingModal.topDirFocused = !m.typingModal.topDirFocused
+	case m.typingModal.topDirFocused && isSpaceKey(msg):
+		m.typingModal.zipTopDir = !m.typingModal.zipTopDir
 	case slices.Contains(common.Hotkeys.ConfirmTyping, msg):
+		if m.typingModal.zipSources != nil {
+			return m.confirmZipName()
+		}
 		return m.getCreateCmd()
 	}
 	return nil
@@ -442,7 +452,7 @@ func (m *model) sortOptionsKey(msg string) {
 func (m *model) editorPickerKey(msg string) tea.Cmd {
 	switch {
 	case slices.Contains(common.Hotkeys.QuitKeys(), msg), slices.Contains(common.Hotkeys.OpenWithEditor, msg):
-		m.closeEditorPicker()
+		m.editorPicker.Close()
 	case slices.Contains(common.Hotkeys.Confirm, msg), isSpaceKey(msg):
 		return m.confirmEditorPicker()
 	case slices.Contains(common.Hotkeys.ListUp, msg):

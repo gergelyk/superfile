@@ -66,6 +66,7 @@ Quit superfile and cd to current folder "cd_quit" requires the same setup as ["c
 | Return to parent folder                            | `h`, `left`, `backspace`    | `parent_directory`                                               |
 | Select all items in focused file panel             | `A` (shift+a)               | `file_panel_select_all_items`                                     |
 | Toggle selection of item under cursor              | `space`                     | `file_panel_toggle_select_item`                                  |
+| Toggle selection of item under cursor and move to the next item | `insert`                    | `file_panel_toggle_select_item_next`                            |
 | Select up from your cursor                         | `shift+up`, `K` (shift+k)   | `file_panel_select_mode_items_select_up` (selection mode only)   |
 | Select down from your cursor                       | `shift+down`, `J` (shift+j) | `file_panel_select_mode_items_select_down` (selection mode only) |
 | Toggle dot file display                            | `.`                         | `toggle_dot_file`                                                |
@@ -78,8 +79,7 @@ Quit superfile and cd to current folder "cd_quit" requires the same setup as ["c
 | ----------------------------------------------------- | ------------------ | -------------------------------------------------- |
 | Create file or folder (end with / to create a folder) | `ctrl+n`           | `file_panel_item_create`                           |
 | Rename file or folder                                 | `ctrl+r`           | `file_panel_item_rename`                           |
-| Rename with a regular expression, with a preview | `ctrl+y` | `file_panel_item_rename_regex` |
-| Rename to snake_case, PascalCase, UPPER_CASE, kebab-case, flatcase, Natural Case, Pascal_Snake_Case or numbered | `ctrl+t` | `file_panel_item_rename_case`                      |
+| Rename dialog with tabs (Tab to switch): change case or use a regular expression, with a preview | `ctrl+t` | `file_panel_item_rename_case`                      |
 | Copy selected items to the clipboard                  | `ctrl+c`           | `copy_items`                                       |
 | Cut selected items to the clipboard                   | `ctrl+x`           | `cut_items`                                        |
 | Paste clipboard items into the current file panel     | `ctrl+v`, `ctrl+w` | `paste_items`                                      |
@@ -90,7 +90,7 @@ Quit superfile and cd to current folder "cd_quit" requires the same setup as ["c
 | Copy current or selected file/directory paths         | `ctrl+p`           | `copy_path`                                        |
 | Copy current working directory                        | `c`                | `copy_present_working_directory`                   |
 | Extract compressed file                               | `ctrl+e`           | `extract_file` (normal mode)                       |
-| Zip file or folder to .zip file                       | `ctrl+a`           | `compress_file` (normal mode)                      |
+| Zip file or folder to .zip file                       | `ctrl+z`           | `compress_file` (normal mode)                      |
 | Open file with your default editor                    | `e`                | `open_file_with_editor` (normal mode)              |
 | View file in a browser window (text, images, Excalidraw, Mermaid, draw.io) | `f3` | `view_file` (normal mode) |
 | Open item with an external editor (picker if several) | `E` (shift+e), `f4` | `open_with_editor` (normal mode)                   |

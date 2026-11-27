@@ -644,12 +644,7 @@ func (m *model) openWithEditor() tea.Cmd {
 
 func (m *model) confirmEditorPicker() tea.Cmd {
 	idx := m.editorPicker.Cursor
-	casePaths := m.pendingCasePaths
-	m.closeEditorPicker()
-	if casePaths != nil {
-		m.applyCaseRename(casePaths, idx)
-		return nil
-	}
+	m.editorPicker.Close()
 	if idx >= len(m.pendingEditors) {
 		return nil
 	}

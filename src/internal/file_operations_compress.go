@@ -13,9 +13,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
+	"github.com/yorukot/superfile/src/internal/common"
 	"github.com/yorukot/superfile/src/internal/ui/notify"
 	"github.com/yorukot/superfile/src/internal/ui/processbar"
 )
+
+const dirZipPerm = 0o755
 
 func validateCompressOperation(sources []string) (int, error) {
 	totalFiles := 0
@@ -43,6 +46,7 @@ func validateCompressOperation(sources []string) (int, error) {
 	return totalFiles, nil
 }
 
+// getCompressSelectedFilesCmd opens the dialog for the name of the zip file
 func (m *model) getCompressSelectedFilesCmd() tea.Cmd {
 	panel := m.getFocusedFilePanel()
 
@@ -50,40 +54,93 @@ func (m *model) getCompressSelectedFilesCmd() tea.Cmd {
 		return nil
 	}
 	var filesToCompress []string
-	var firstFile string
-
 	if panel.SelectedCount() == 0 {
-		firstFile = panel.GetFocusedItem().Location
-		filesToCompress = append(filesToCompress, firstFile)
+		filesToCompress = append(filesToCompress, panel.GetFocusedItem().Location)
 	} else {
-		firstFile = panel.GetFirstSelectedLocation()
 		filesToCompress = panel.GetSelectedLocationsSortedAsVisible()
 	}
 
-	reqID := m.nextIoReqCnt()
+	m.typingModal.location = panel.Location
+	m.typingModal.open = true
+	m.typingModal.zipSources = filesToCompress
+	m.typingModal.err = ""
+	m.typingModal.zipTopDir = len(filesToCompress) > 1
+	m.typingModal.topDirFocused = false
+	m.typingModal.textInput = common.GenerateNewFileTextInput()
+	m.typingModal.textInput.Placeholder = "name of the zip file"
+	name := defaultZipName(panel.Location)
+	m.typingModal.textInput.SetValue(name)
+	m.typingModal.nameSelectEnd = renameSelectionEnd(name, false)
+	m.typingModal.nameSelected = true
+	m.typingModal.textInput.SetCursor(m.typingModal.nameSelectEnd)
+	m.firstTextInput = true
+	return nil
+}
 
-	return func() tea.Msg {
-		zipName, err := getZipArchiveName(filepath.Base(firstFile))
-		if err != nil {
-			slog.Error("Error in getZipArchiveName", "error", err)
-			return NewNotifyModalMsg(notify.New(true, "Invalid zip target name", err.Error(), notify.NoAction),
-				reqID)
+// defaultZipName is the name of the directory with the .zip suffix
+func defaultZipName(dir string) string {
+	name := filepath.Base(dir)
+	if name == "." || name == string(filepath.Separator) {
+		name = "archive"
+	}
+	return name + ".zip"
+}
+
+// confirmZipName checks the name typed in the typing modal. If it is not usable, the modal stays open
+// with the reason shown. Otherwise the modal is closed and the compression is returned.
+func (m *model) confirmZipName() tea.Cmd {
+	name := strings.TrimSpace(m.typingModal.textInput.Value())
+	if err := checkZipName(m.typingModal.location, name); err != nil {
+		m.typingModal.err = err.Error()
+		return nil
+	}
+	if !strings.HasSuffix(strings.ToLower(name), ".zip") {
+		name += ".zip"
+		if err := checkZipName(m.typingModal.location, name); err != nil {
+			m.typingModal.err = err.Error()
+			return nil
 		}
-		zipPath := filepath.Join(panel.Location, zipName)
+	}
+	filesToCompress := m.typingModal.zipSources
+	topDir := ""
+	if m.typingModal.zipTopDir {
+		topDir = name[:len(name)-len(".zip")]
+	}
+	zipPath := filepath.Join(m.typingModal.location, name)
+	m.cancelTypingModal()
+
+	reqID := m.nextIoReqCnt()
+	return func() tea.Msg {
 		totalFiles, err := validateCompressOperation(filesToCompress)
 		if err != nil {
 			return NewNotifyModalMsg(notify.New(true, "Invalid file/dir to compress", err.Error(), notify.NoAction),
 				reqID)
 		}
-		if err := zipSources(filesToCompress, totalFiles, zipPath, &m.processBarModel); err != nil {
+		if err := zipSources(filesToCompress, totalFiles, zipPath, topDir, &m.processBarModel); err != nil {
 			slog.Error("Error in zipping files", "error", err)
-			return NewCompressOperationMsg(processbar.Failed, reqID)
+			return NewCompressOperationMsg(processbar.Failed, reqID, zipPath)
 		}
-		return NewCompressOperationMsg(processbar.Successful, reqID)
+		return NewCompressOperationMsg(processbar.Successful, reqID, zipPath)
 	}
 }
 
-func zipSources(sources []string, totalFiles int, target string, processBar *processbar.Model) error {
+func checkZipName(dir, name string) error {
+	switch {
+	case name == "" || name == ".zip":
+		return errors.New("name cannot be empty")
+	case strings.ContainsRune(name, filepath.Separator) || name == "." || name == "..":
+		return errors.New("name cannot contain a path separator")
+	}
+	if _, err := os.Lstat(filepath.Join(dir, name)); err == nil {
+		return errors.New("already exists: " + name)
+	} else if !os.IsNotExist(err) {
+		return err
+	}
+	return nil
+}
+
+// zipSources creates the zip file. If topDir is not empty, the sources are put in a directory of that name.
+func zipSources(sources []string, totalFiles int, target, topDir string, processBar *processbar.Model) error {
 	var err error
 
 	p, err := processBar.SendAddProcessMsg(filepath.Base(target), processbar.OpCompress, totalFiles, true)
@@ -110,7 +167,7 @@ func zipSources(sources []string, totalFiles int, target string, processBar *pro
 	writer := zip.NewWriter(f)
 	defer writer.Close()
 
-	zipSourcesCore(sources, processBar, &p, writer)
+	zipSourcesCore(sources, topDir, processBar, &p, writer)
 
 	if p.State != processbar.Failed {
 		// TODO: User p.SetSuccessful(), p.SetFailed()
@@ -125,8 +182,17 @@ func zipSources(sources []string, totalFiles int, target string, processBar *pro
 	return nil
 }
 
-func zipSourcesCore(sources []string, processBar *processbar.Model,
+func zipSourcesCore(sources []string, topDir string, processBar *processbar.Model,
 	p *processbar.Process, writer *zip.Writer) {
+	if topDir != "" {
+		header := &zip.FileHeader{Name: topDir + "/", Method: zip.Store, Modified: time.Now()}
+		header.SetMode(os.ModeDir | dirZipPerm)
+		if _, err := writer.CreateHeader(header); err != nil {
+			slog.Error("Error while creating the top directory in zip", "error", err)
+			p.State = processbar.Failed
+			return
+		}
+	}
 	for _, src := range sources {
 		srcParentDir := filepath.Dir(src)
 		err := filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
@@ -139,6 +205,9 @@ func zipSourcesCore(sources []string, processBar *processbar.Model,
 				return err
 			}
 
+			if topDir != "" {
+				relPath = filepath.Join(topDir, relPath)
+			}
 			err = writeZipFile(path, relPath, info, writer)
 			if err != nil {
 				return err
@@ -162,7 +231,7 @@ func writeZipFile(path string, relPath string, info os.FileInfo, writer *zip.Wri
 		return err
 	}
 	header.Method = zip.Deflate
-	header.Name = relPath
+	header.Name = filepath.ToSlash(relPath)
 	if info.IsDir() {
 		header.Name += "/"
 	}
@@ -183,17 +252,4 @@ func writeZipFile(path string, relPath string, info os.FileInfo, writer *zip.Wri
 		return err
 	}
 	return nil
-}
-
-func getZipArchiveName(base string) (string, error) {
-	if len(base) == 0 {
-		return "", errors.New("empty filename to compress")
-	}
-	zipName := strings.TrimSuffix(base, filepath.Ext(base)) + ".zip"
-	runes := []rune(base)
-	if runes[0] == '.' && strings.Count(base, ".") == 1 {
-		zipName = base + ".zip"
-	}
-	zipName, err := renameIfDuplicate(zipName)
-	return zipName, err
 }

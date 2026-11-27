@@ -2,6 +2,7 @@ package internal
 
 import (
 	"log/slog"
+	"path/filepath"
 
 	tea "charm.land/bubbletea/v2"
 
@@ -51,11 +52,14 @@ type CreateOperationMsg struct {
 	BaseMessage
 
 	state processbar.ProcessState
+	// path of the created item, it gets the cursor
+	path string
 }
 
-func NewCreateOperationMsg(state processbar.ProcessState, reqID int) CreateOperationMsg {
+func NewCreateOperationMsg(state processbar.ProcessState, reqID int, path string) CreateOperationMsg {
 	return CreateOperationMsg{
 		state: state,
+		path:  path,
 		BaseMessage: BaseMessage{
 			reqID: reqID,
 		},
@@ -63,7 +67,20 @@ func NewCreateOperationMsg(state processbar.ProcessState, reqID int) CreateOpera
 }
 
 func (msg CreateOperationMsg) ApplyToModel(m *model) tea.Cmd {
+	if msg.state == processbar.Successful {
+		m.focusItem(msg.path)
+	}
 	return nil
+}
+
+// focusItem moves the cursor of the focused panel to the item, if the panel shows its directory
+func (m *model) focusItem(path string) {
+	panel := m.getFocusedFilePanel()
+	if panel.Location != filepath.Dir(path) {
+		return
+	}
+	panel.TargetFile = filepath.Base(path)
+	m.fileModel.UpdateFilePanelsIfNeeded(true)
 }
 
 type DeleteOperationMsg struct {
@@ -105,18 +122,24 @@ type CompressOperationMsg struct {
 	BaseMessage
 
 	state processbar.ProcessState
+	// path of the zip file, it gets the cursor
+	path string
 }
 
-func NewCompressOperationMsg(state processbar.ProcessState, reqID int) CompressOperationMsg {
+func NewCompressOperationMsg(state processbar.ProcessState, reqID int, path string) CompressOperationMsg {
 	return CompressOperationMsg{
 		state: state,
+		path:  path,
 		BaseMessage: BaseMessage{
 			reqID: reqID,
 		},
 	}
 }
 
-func (msg CompressOperationMsg) ApplyToModel(_ *model) tea.Cmd {
+func (msg CompressOperationMsg) ApplyToModel(m *model) tea.Cmd {
+	if msg.state == processbar.Successful {
+		m.focusItem(msg.path)
+	}
 	return nil
 }
 

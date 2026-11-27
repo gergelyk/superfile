@@ -52,7 +52,6 @@ file_panel_item_create = ['a', '']
 file_panel_dir_create = ['f7', '']
 file_panel_item_rename = ['r', 'f2', '']
 file_panel_item_rename_case = ['ctrl+t', '']
-file_panel_item_rename_regex = ['ctrl+y', '']
 
 #-- Main File Operations
 copy_items = ['y', '']
@@ -65,7 +64,7 @@ move_to_next_panel = ['f6', '']
 
 #-- Archive Manipulation
 extract_file = ['ctrl+e', '']
-compress_file = ['ctrl+a', '']
+compress_file = ['ctrl+z', '']
 
 #-- Editor Actions
 open_file_with_editor = ['e', '']
@@ -109,3 +108,4 @@ file_panel_select_mode_items_select_down = ['J', '']
 file_panel_select_mode_items_select_up = ['K', '']
 file_panel_select_all_items = ['A', '']
 file_panel_toggle_select_item = ['space', '']
+file_panel_toggle_select_item_next = ['insert', '']

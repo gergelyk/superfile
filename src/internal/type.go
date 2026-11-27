@@ -74,11 +74,9 @@ type model struct {
 	sortModal       sortmodel.Model
 	editorPicker    editorpicker.Model
 	pendingEditors  []editors.Editor
-	// Items waiting for a case to be picked in the editor picker. nil if the picker is used for editors.
-	pendingCasePaths []string
-	pendingEditPath  string
-	spfError         spferror.Model
-	mutexErrorModal  sync.Mutex
+	pendingEditPath string
+	spfError        spferror.Model
+	mutexErrorModal sync.Mutex
 
 	// Zoxide client for directory tracking
 	zClient *zoxidelib.Client
@@ -115,6 +113,17 @@ type typingModal struct {
 	location  string
 	open      bool
 	textInput textinput.Model
+	// zipSources is set when the modal asks for the name of a zip file instead of a new item name
+	zipSources []string
+	// The name up to nameSelectEnd (runes) is selected, typing replaces it
+	nameSelected  bool
+	nameSelectEnd int
+	// zipTopDir puts the items in a directory named as the zip file. topDirFocused tells
+	// that the checkbox has the focus, not the input.
+	zipTopDir     bool
+	topDirFocused bool
+	// err is shown under the input, and the modal stays open
+	err string
 }
 
 type editorFinishedMsg struct{ err error }

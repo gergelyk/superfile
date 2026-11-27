@@ -20,41 +20,45 @@ import (
 func (m *model) cancelTypingModal() {
 	m.typingModal.textInput.Blur()
 	m.typingModal.open = false
+	m.typingModal.zipSources = nil
+	m.typingModal.nameSelected = false
+	m.typingModal.topDirFocused = false
+	m.typingModal.err = ""
 }
 
-// Confirm to create file or directory
-func createItem(location, item string) error {
+// Confirm to create file or directory. Returns the path of the created item
+func createItem(location, item string) (string, error) {
 	if err := checkFileNameValidity(item); err != nil {
 		slog.Error("Errow while createItem during item creation", "error", err)
-		return err
+		return "", err
 	}
 	path := filepath.Join(location, item)
 	if archive.IsLocation(location) {
 		if !strings.HasSuffix(item, string(filepath.Separator)) {
-			return errors.New("only directories can be created inside an archive")
+			return "", errors.New("only directories can be created inside an archive")
 		}
-		return archive.Mkdir(path)
+		return path, archive.Mkdir(path)
 	}
 	if !strings.HasSuffix(item, string(filepath.Separator)) {
 		path, _ = renameIfDuplicate(path)
 		if err := os.MkdirAll(filepath.Dir(path), utils.UserDirPerm); err != nil {
 			slog.Error("Error while createItem during directory creation", "error", err)
-			return err
+			return "", err
 		}
 		f, err := os.Create(path)
 		if err != nil {
 			slog.Error("Error while createItem during file creation", "error", err)
-			return err
+			return "", err
 		}
 		defer f.Close()
 	} else {
 		err := os.MkdirAll(path, utils.UserDirPerm)
 		if err != nil {
 			slog.Error("Error while createItem during directory creation", "error", err)
-			return err
+			return "", err
 		}
 	}
-	return nil
+	return path, nil
 }
 
 func (m *model) getCreateCmd() tea.Cmd {
@@ -80,22 +84,25 @@ func (m *model) createOperation(
 	reqID int,
 ) tea.Msg {
 	if len(items) == 0 {
-		return NewCreateOperationMsg(processbar.Cancelled, reqID)
+		return NewCreateOperationMsg(processbar.Cancelled, reqID, "")
 	}
 	p, err := processBarModel.SendAddProcessMsg(filepath.Base(items[0]), processbar.OpCreate, len(items), true)
 	if err != nil {
 		slog.Error("Cannot spawn a new process", "error", err)
-		return NewCreateOperationMsg(processbar.Failed, reqID)
+		return NewCreateOperationMsg(processbar.Failed, reqID, "")
 	}
+	// the first created item gets the cursor
+	var created string
 	finalizer := func(state processbar.ProcessState, reqID int) tea.Msg {
-		return NewCreateOperationMsg(state, reqID)
+		return NewCreateOperationMsg(state, reqID, topLevelUnder(location, created))
 	}
-	processor := makeCreateProcessor(location, p, processBarModel)
+	processor := makeCreateProcessor(location, &created, p, processBarModel)
 	msg := m.runFileProcessor(processor, finalizer, items, reqID)
 	return msg
 }
 
 func makeCreateProcessor(location string,
+	firstCreated *string,
 	process processbar.Process,
 	processBarModel *processbar.Model) processbar.FileListProcessor {
 	processorFunction := func(items []string) (processbar.Process, []string) {
@@ -106,13 +113,16 @@ func makeCreateProcessor(location string,
 		}
 
 		for i, item := range items {
-			err := createItem(location, item)
+			created, err := createItem(location, item)
 			if err != nil {
 				process.State = processbar.Failed
 				slog.Error("Error in create operation", "item", item, "error", err)
 				process.ErrorMsg = formatFileError(item, err)
 				notProcessed = items[i:]
 				break
+			}
+			if *firstCreated == "" {
+				*firstCreated = created
 			}
 			process.CurrentFile = filepath.Base(item)
 			process.Done++
@@ -191,4 +201,18 @@ func (m *model) confirmSearch() {
 
 func (m *model) getFocusedFilePanel() *filepanel.Model {
 	return m.fileModel.GetFocusedFilePanel()
+}
+
+// topLevelUnder returns the item of location that contains path, or path itself if it is directly in location.
+// It is empty if there is no path.
+func topLevelUnder(location, path string) string {
+	if path == "" {
+		return ""
+	}
+	rel, err := filepath.Rel(location, path)
+	if err != nil {
+		return path
+	}
+	first, _, _ := strings.Cut(rel, string(filepath.Separator))
+	return filepath.Join(location, first)
 }

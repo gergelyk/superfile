@@ -108,6 +108,10 @@ func TestCompressSelectedFiles(t *testing.T) {
 
 	// Copied from CopyTest. TODO - work on it.
 
+	// The default name of the zip file comes from the directory name
+	defaultDir := filepath.Base(curTestDir)
+	defaultZip := defaultDir + ".zip"
+
 	testdata := []struct {
 		name             string
 		startDir         string
@@ -125,8 +129,8 @@ func TestCompressSelectedFiles(t *testing.T) {
 			cursor:                    2,
 			selectMode:                false,
 			selectedElem:              nil,
-			expectedZipName:           "file1.zip",
-			extractedDirName:          "file1",
+			expectedZipName:           defaultZip,
+			extractedDirName:          defaultDir,
 			expectedFilesAfterExtract: []string{"file1.txt"},
 		},
 		{
@@ -135,8 +139,8 @@ func TestCompressSelectedFiles(t *testing.T) {
 			cursor:                    0,
 			selectMode:                false,
 			selectedElem:              nil,
-			expectedZipName:           "dir1.zip",
-			extractedDirName:          "dir1(1)",
+			expectedZipName:           defaultZip,
+			extractedDirName:          defaultDir,
 			expectedFilesAfterExtract: []string{filepath.Join("dir1", "file2.txt")},
 		},
 		{
@@ -145,8 +149,8 @@ func TestCompressSelectedFiles(t *testing.T) {
 			cursor:                    2,
 			selectMode:                true,
 			selectedElem:              []string{},
-			expectedZipName:           "file1.zip",
-			extractedDirName:          "file1",
+			expectedZipName:           defaultZip,
+			extractedDirName:          defaultDir,
 			expectedFilesAfterExtract: []string{"file1.txt"},
 		},
 		{
@@ -155,8 +159,8 @@ func TestCompressSelectedFiles(t *testing.T) {
 			cursor:                    0, // points to dir1
 			selectMode:                true,
 			selectedElem:              []string{file1},
-			expectedZipName:           "file1.zip",
-			extractedDirName:          "file1",
+			expectedZipName:           defaultZip,
+			extractedDirName:          defaultDir,
 			expectedFilesAfterExtract: []string{"file1.txt"},
 		},
 		{
@@ -165,8 +169,8 @@ func TestCompressSelectedFiles(t *testing.T) {
 			cursor:                    0, // points to dir1
 			selectMode:                true,
 			selectedElem:              []string{dir2, dir1, file1},
-			expectedZipName:           "dir2.zip",
-			extractedDirName:          "dir2(1)",
+			expectedZipName:           defaultZip,
+			extractedDirName:          defaultDir,
 			expectedFilesAfterExtract: []string{"dir2", filepath.Join("dir1", "file2.txt"), "file1.txt"},
 		},
 	}
@@ -188,6 +192,9 @@ func TestCompressSelectedFiles(t *testing.T) {
 			}
 
 			p.SendKey(common.Hotkeys.CompressFile[0])
+			require.True(t, m.typingModal.open, "Zip name dialog should be open")
+			require.Equal(t, defaultZip, m.typingModal.textInput.Value())
+			p.SendKey(common.Hotkeys.ConfirmTyping[0])
 
 			// This is a bit of an indirect validation, but there aren't many ways.
 			// We many add a process type later, and ensure that a process of
@@ -217,7 +224,12 @@ func TestCompressSelectedFiles(t *testing.T) {
 			})
 			assert.Eventually(t, func() bool {
 				for _, f := range tt.expectedFilesAfterExtract {
-					_, err := os.Stat(filepath.Join(extractedDir, f))
+					// The top directory is created by default only for multiple items
+					base := extractedDir
+					if tt.selectMode && len(tt.selectedElem) > 1 {
+						base = filepath.Join(extractedDir, defaultDir)
+					}
+					_, err := os.Stat(filepath.Join(base, f))
 					if err != nil {
 						return false
 					}
@@ -227,6 +239,17 @@ func TestCompressSelectedFiles(t *testing.T) {
 				extractedDir, tt.expectedFilesAfterExtract)
 		})
 	}
+
+	t.Run("Existing zip name keeps the dialog open", func(t *testing.T) {
+		require.NoError(t, os.WriteFile(filepath.Join(curTestDir, defaultZip), nil, 0o600))
+		t.Cleanup(func() { cleanupWithRetry(t, filepath.Join(curTestDir, defaultZip), "zip file") })
+		m := defaultTestModel(curTestDir)
+		p := NewTestTeaProgWithEventLoop(t, m)
+		p.SendKey(common.Hotkeys.CompressFile[0])
+		p.SendKey(common.Hotkeys.ConfirmTyping[0])
+		assert.True(t, m.typingModal.open)
+		assert.Empty(t, m.processBarModel.GetProcessesSlice())
+	})
 
 	t.Run("Compress on Empty panel", func(t *testing.T) {
 		NewTestTeaProgWithEventLoop(t, defaultTestModel(dir2)).
@@ -431,7 +454,7 @@ func TestPasteItem(t *testing.T) {
 		p.SendKey(common.Hotkeys.PasteItems[0])
 
 		// Verify duplicate file with different name
-		verifyDestinationFiles(t, destDir, []string{"duplicate(1).txt"})
+		verifyDestinationFiles(t, destDir, []string{"duplicate-1.txt"})
 	})
 }
 
@@ -536,4 +559,18 @@ func TestRunFileProcessorMutex(t *testing.T) {
 			assert.True(t, ok)
 			assert.True(t, m.mutexErrorModal.TryLock())
 		})
+}
+
+func TestToggleSelectAndMoveNext(t *testing.T) {
+	dir := t.TempDir()
+	f1, f2 := filepath.Join(dir, "a.txt"), filepath.Join(dir, "b.txt")
+	utils.SetupFiles(t, f1, f2)
+	m := defaultTestModel(dir)
+	p := NewTestTeaProgWithEventLoop(t, m)
+
+	p.SendKey(common.Hotkeys.FilePanelToggleSelectItemNext[0])
+
+	panel := m.getFocusedFilePanel()
+	assert.Equal(t, []string{f1}, panel.GetSelectedLocations())
+	assert.Equal(t, f2, panel.GetFocusedItem().Location)
 }

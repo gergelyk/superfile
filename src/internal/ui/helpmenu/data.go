@@ -191,6 +191,11 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 			hotkeyWorkType: globalType,
 		},
 		{
+			hotkey:         common.Hotkeys.FilePanelToggleSelectItemNext,
+			description:    "Toggle selection of item under cursor and move to the next item",
+			hotkeyWorkType: globalType,
+		},
+		{
 			hotkey:         common.Hotkeys.FilePanelSelectModeItemsSelectUp,
 			description:    "Select up from your cursor",
 			hotkeyWorkType: globalType,
@@ -235,12 +240,7 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 		},
 		{
 			hotkey:         common.Hotkeys.FilePanelItemRenameCase,
-			description:    "Rename selected items to snake_case, PascalCase, UPPER_CASE, kebab-case, flatcase, Natural Case, Pascal_Snake_Case or numbered",
-			hotkeyWorkType: globalType,
-		},
-		{
-			hotkey:         common.Hotkeys.FilePanelItemRenameRegex,
-			description:    "Rename selected items with a regular expression, with a preview",
+			description:    "Rename selected items with a preview: change case (snake_case, PascalCase, ...) or use a regular expression (Tab switches tabs)",
 			hotkeyWorkType: globalType,
 		},
 		{

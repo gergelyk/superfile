@@ -117,7 +117,7 @@ func TestTransferDoesNotOverwrite(t *testing.T) {
 		p := NewTestTeaProgWithEventLoop(t, defaultTestModel(dir1, dir2))
 		p.SendKey(key)
 		p.Send(tea.KeyPressMsg{Code: tea.KeyEnter})
-		renamed := filepath.Join(dir2, "file1(1).txt")
+		renamed := filepath.Join(dir2, "file1-1.txt")
 		assert.Eventually(t, func() bool {
 			_, err := os.Lstat(renamed)
 			return err == nil

@@ -18,7 +18,7 @@ import (
 	"github.com/yorukot/superfile/src/internal/ui/processbar"
 )
 
-var suffixRegexp = regexp.MustCompile(`^(.*)\((\d+)\)$`)
+var suffixRegexp = regexp.MustCompile(`^(.*)-(\d+)$`)
 
 // Check if the directory is external disk path
 // TODO : This function should be give two directories, and it should return
@@ -75,7 +75,7 @@ func renameIfDuplicate(destination string) (string, error) {
 	counter := 1
 	//nolint:mnd // 3 = full match + 2 capture groups
 	if match := suffixRegexp.FindStringSubmatch(name); len(match) == 3 {
-		name = match[1] // base name without (N)
+		name = match[1] // base name without -N
 		if num, err := strconv.Atoi(match[2]); err == nil {
 			counter = num + 1 // start from next number
 		}
@@ -83,7 +83,7 @@ func renameIfDuplicate(destination string) (string, error) {
 
 	// Find first available name
 	for i := counter; i < 10_000; i++ {
-		newName := fmt.Sprintf("%s(%d)%s", name, i, ext)
+		newName := fmt.Sprintf("%s-%d%s", name, i, ext)
 		newPath := filepath.Join(dir, newName)
 		if _, err := os.Stat(newPath); os.IsNotExist(err) {
 			return newPath, nil

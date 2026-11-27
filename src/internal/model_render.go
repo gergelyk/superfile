@@ -78,16 +78,36 @@ func (m *model) typineModalRender() string {
 			common.TruncateTextBeginning(previewPath, common.ModalWidth-common.InnerPadding, "..."),
 		) + "\n"
 
-	confirm := common.ModalConfirm.Render(" (" + common.Hotkeys.ConfirmTyping[0] + ") Create ")
+	confirmLabel := "Create"
+	if m.typingModal.zipSources != nil {
+		confirmLabel = "Zip"
+	}
+	confirm := common.ModalConfirm.Render(" (" + common.Hotkeys.ConfirmTyping[0] + ") " + confirmLabel + " ")
+	errLine := common.ProcessErrorStyle.Render(
+		common.TruncateText(m.typingModal.err, common.ModalWidth-common.InnerPadding, "..."))
 	cancel := common.ModalCancel.Render(" (" + common.Hotkeys.CancelTyping[0] + ") Cancel ")
 
 	tip := confirm +
 		lipgloss.NewStyle().Background(common.ModalBGColor).Render("           ") +
 		cancel
 
+	checkbox, height := "", common.ModalHeight
+	if m.typingModal.zipSources != nil {
+		box := "[ ]"
+		if m.typingModal.zipTopDir {
+			box = "[x]"
+		}
+		style := common.ModalStyle
+		if m.typingModal.topDirFocused {
+			style = common.ModalTitleStyle
+		}
+		checkbox = leftAligned(style.Render(box+" Create top directory")) + "\n"
+		height++
+	}
+
 	// TODO : Move this all to rendering package to avoid specifying newlines manually
-	return common.ModalBorderStyle(common.ModalHeight, common.ModalWidth).
-		Render(fileLocation + "\n" + m.typingModal.textInput.View() + "\n\n" + tip)
+	return common.ModalBorderStyle(height, common.ModalWidth).
+		Render(fileLocation + "\n" + leftAligned(m.typingModalInputView()) + "\n" + checkbox + errLine + "\n" + tip)
 }
 
 func (m *model) introduceModalRender() string {
@@ -121,4 +141,20 @@ func (m *model) promptModalRender() string {
 
 func (m *model) zoxideModalRender() string {
 	return m.zoxideModal.Render()
+}
+
+// typingModalInputView draws the input, with the selected part of the name highlighted
+func (m *model) typingModalInputView() string {
+	if !m.typingModal.nameSelected {
+		return m.typingModal.textInput.View()
+	}
+	runes := []rune(m.typingModal.textInput.Value())
+	end := min(m.typingModal.nameSelectEnd, len(runes))
+	return m.typingModal.textInput.Prompt + common.RenameSelectionStyle.Render(string(runes[:end])) +
+		common.ModalStyle.Render(string(runes[end:]))
+}
+
+// leftAligned fills the line to the width of the modal, which centers its content otherwise
+func leftAligned(line string) string {
+	return common.ModalStyle.Width(common.ModalWidth - common.BorderPadding).PaddingLeft(1).Render(line)
 }
