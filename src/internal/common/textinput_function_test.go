@@ -30,3 +30,24 @@ func TestUpdateTextInputWordJump(t *testing.T) {
 	}
 	assert.Equal(t, []int{2, 7, 10, 14}, positions)
 }
+
+func TestUpdateTextInputCamelCaseJump(t *testing.T) {
+	ti := textinput.New()
+	ti.Focus()
+	ti.SetValue("fooBarHTTPServer2")
+	ti.SetCursor(0)
+
+	var positions []int
+	for range 5 {
+		ti, _ = UpdateTextInput(ti, tea.KeyPressMsg{Code: tea.KeyRight, Mod: tea.ModCtrl})
+		positions = append(positions, ti.Position())
+	}
+	assert.Equal(t, []int{3, 6, 10, 17, 17}, positions)
+
+	positions = nil
+	for range 5 {
+		ti, _ = UpdateTextInput(ti, tea.KeyPressMsg{Code: tea.KeyLeft, Mod: tea.ModCtrl})
+		positions = append(positions, ti.Position())
+	}
+	assert.Equal(t, []int{10, 6, 3, 0, 0}, positions)
+}
