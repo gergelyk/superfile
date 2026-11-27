@@ -49,7 +49,8 @@ focus_on_sidebar = ['s', '']
 file_panel_item_create = ['ctrl+n', '']
 file_panel_dir_create = ['f7', '']
 file_panel_item_rename = ['ctrl+r', 'f2', '']
-file_panel_item_rename_case = ['ctrl+shift+r', '']
+file_panel_item_rename_case = ['ctrl+t', '']
+file_panel_item_rename_regex = ['ctrl+y', '']
 
 #-- Main File Operations
 copy_items = ['ctrl+c', '']

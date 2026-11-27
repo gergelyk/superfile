@@ -47,11 +47,11 @@ func Test_filePanelUpDown(t *testing.T) {
 			expectedRender: 1,
 		},
 		{
-			name:           "Down movement causing wrap to top",
+			name:           "Down movement at last item does not wrap",
 			panel:          testModelWithElemCount(9, 3, 12, 10),
 			listDown:       true,
-			expectedCursor: 0,
-			expectedRender: 0,
+			expectedCursor: 9,
+			expectedRender: 3,
 		},
 		{
 			name:           "Up movement within renderable range",
@@ -68,11 +68,11 @@ func Test_filePanelUpDown(t *testing.T) {
 			expectedRender: 2,
 		},
 		{
-			name:           "Up movement causing wrap to bottom",
+			name:           "Up movement at first item does not wrap",
 			panel:          testModelWithElemCount(0, 0, 12, 10),
 			listDown:       false,
-			expectedCursor: 9,
-			expectedRender: 3,
+			expectedCursor: 0,
+			expectedRender: 0,
 		},
 		{
 			name:           "Down movement on empty panel",
@@ -238,14 +238,14 @@ func TestItemSelectUpDown(t *testing.T) {
 			expectedSelected: map[string]int{},
 		},
 		{
-			name: "Selection at boundary with wrap",
+			name: "Selection at boundary without wrap",
 			panel: testModel(1, 0, 12, SelectMode, []Element{
 				{Name: "file1.txt", Location: "/tmp/file1.txt"},
 				{Name: "file2.txt", Location: "/tmp/file2.txt"},
 			}),
 			panelToSelect:    []string{},
 			selectDown:       true,
-			expectedCursor:   0, // wraps to beginning
+			expectedCursor:   1,
 			expectedRender:   0,
 			expectedSelected: map[string]int{"/tmp/file2.txt": 1},
 		},

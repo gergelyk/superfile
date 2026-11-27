@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/pkg/utils"
 )
 
@@ -15,7 +16,7 @@ import (
 // our unit_test TestReturnDirElement
 // getDirectoryElements returns the directory elements for the panel's current location
 func (m *Model) getDirectoryElements(displayDotFile bool) []Element {
-	dirEntries, err := os.ReadDir(m.Location)
+	dirEntries, err := archive.ReadDir(m.Location)
 	if err != nil {
 		slog.Error("Error while returning folder elements", "error", err)
 		return nil
@@ -37,7 +38,7 @@ func (m *Model) getDirectoryElements(displayDotFile bool) []Element {
 // getDirectoryElementsBySearch returns filtered directory elements based on search string
 func (m *Model) getDirectoryElementsBySearch(displayDotFile bool) []Element {
 	searchString := m.SearchBar.Value()
-	items, err := os.ReadDir(m.Location)
+	items, err := archive.ReadDir(m.Location)
 	if err != nil {
 		slog.Error("Error while return folder element function", "error", err)
 		return nil

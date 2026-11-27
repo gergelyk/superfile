@@ -13,6 +13,7 @@ import (
 	"github.com/yorukot/superfile/src/pkg/utils"
 
 	variable "github.com/yorukot/superfile/src/config"
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/internal/common"
 )
 
@@ -56,6 +57,14 @@ func (m *model) enterPanel() {
 		return
 	}
 
+	if archive.IsArchiveName(selectedItem.Name) {
+		err := m.updateCurrentFilePanelDir(selectedItem.Location)
+		if err == nil {
+			return
+		}
+		slog.Error("Cannot browse archive, opening it instead", "error", err)
+	}
+
 	if variable.ChooserFile != "" {
 		chooserErr := m.chooserFileWriteAndQuit(m.getSelectedOrFocusedPaths(panel))
 		if chooserErr == nil {
@@ -70,7 +79,11 @@ func (m *model) enterPanel() {
 func (m *model) executeOpenCommand() {
 	panel := m.getFocusedFilePanel()
 
-	filePath := panel.GetFocusedItem().Location
+	filePath, err := archive.Materialize(panel.GetFocusedItem().Location)
+	if err != nil {
+		slog.Error("Error while extracting file from archive", "error", err)
+		return
+	}
 
 	openCommand := "xdg-open"
 	switch runtime.GOOS {
@@ -99,7 +112,7 @@ func (m *model) executeOpenCommand() {
 
 	cmd := exec.Command(openCommand, filePath)
 	utils.DetachFromTerminal(cmd)
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		// TODO: This kind of errors should go to user facing pop ups
 		slog.Error("Error while open file with", "error", err)

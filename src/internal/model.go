@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"reflect"
 	"slices"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/yorukot/superfile/src/config/icon"
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/internal/common"
 	"github.com/yorukot/superfile/src/pkg/utils"
 
@@ -344,6 +346,9 @@ func (m *model) handleKeyInput(msg tea.KeyPressMsg) tea.Cmd {
 	case m.notifyModel.IsOpen():
 		cmd = m.notifyModelOpenKey(msg.String())
 
+	case m.regexRename != nil:
+		cmd = m.regexRenameKey(msg.String())
+
 	// If renaming a object
 	case m.fileModel.Renaming:
 		cmd = m.renamingKey(msg.String())
@@ -412,6 +417,11 @@ func (m *model) updateComponentState(msg tea.Msg) tea.Cmd {
 		}
 	case focusPanel.SearchBar.Focused():
 		focusPanel.SearchBar, cmd = common.UpdateTextInput(focusPanel.SearchBar, msg)
+	case m.regexRename != nil:
+		if in := m.regexRename.focused(); in != nil {
+			*in, cmd = common.UpdateTextInput(*in, msg)
+			m.regexRename.update()
+		}
 	case m.typingModal.open:
 		m.typingModal.textInput, cmd = common.UpdateTextInput(m.typingModal.textInput, msg)
 	case m.promptModal.IsOpen():
@@ -518,10 +528,10 @@ func (m *model) syncPanelsToCurrentDir() tea.Cmd {
 
 // Opens the directory under the cursor in the panel to the left (delta -1) or
 // right (delta 1) of the focused one, creating that panel if it doesn't exist.
-// Does nothing if the cursor isn't on a directory.
+// Archives are opened as directories. Does nothing for other files.
 func (m *model) openDirInAdjacentPanel(delta int) tea.Cmd {
 	item := m.getFocusedFilePanel().GetFocusedItem()
-	if !item.Directory || item.Location == "" {
+	if (!item.Directory && !archive.IsArchiveName(item.Name)) || item.Location == "" {
 		return nil
 	}
 	cmd, err := m.fileModel.OpenDirInAdjacentPanel(delta, item.Location)
@@ -636,6 +646,13 @@ func (m *model) updateRenderForOverlay(finalRender string) string {
 		return stringfunction.PlaceOverlay(overlayX, overlayY, zoxideModal, finalRender)
 	}
 
+	if m.regexRename != nil {
+		modal, width, height := m.regexRename.render(m.fullWidth - common.BorderPadding)
+		overlayX := m.fullWidth/common.CenterDivisor - width/common.CenterDivisor
+		overlayY := max(0, m.fullHeight/common.CenterDivisor-height/common.CenterDivisor)
+		return stringfunction.PlaceOverlay(overlayX, overlayY, modal, finalRender)
+	}
+
 	if m.editorPicker.IsOpen() {
 		picker := m.editorPicker.Render()
 		overlayX := m.fullWidth/common.CenterDivisor - m.editorPicker.Width/common.CenterDivisor
@@ -710,6 +727,9 @@ func (m *model) quitSuperfile(cdOnQuit bool) {
 
 	// cd on quit
 	currentDir := m.getFocusedFilePanel().Location
+	if arch, _, ok := archive.Split(currentDir); ok {
+		currentDir = filepath.Dir(arch)
+	}
 	variable.SetLastDir(currentDir)
 
 	if cdOnQuit {

@@ -20,6 +20,7 @@ import (
 	"github.com/yorukot/superfile/src/internal/ui/spferror"
 	"github.com/yorukot/superfile/src/pkg/utils"
 
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/internal/common"
 	"github.com/yorukot/superfile/src/internal/ui/notify"
 	"github.com/yorukot/superfile/src/internal/ui/processbar"
@@ -172,7 +173,7 @@ func (m *model) getDeleteCmd(permDelete bool) tea.Cmd {
 		items = []string{panel.GetFocusedItem().Location}
 	}
 
-	useTrash := m.hasTrash && trash.Available(panel.Location) && !permDelete
+	useTrash := m.hasTrash && trash.Available(panel.Location) && !archive.IsLocation(panel.Location) && !permDelete
 
 	reqID := m.nextIoReqCnt()
 	slog.Debug("Submitting delete request", "id", reqID, "items cnt", len(items))
@@ -213,7 +214,12 @@ func makeDeleteProcessor(process processbar.Process,
 			}
 		}
 		for i, item := range items {
-			err := deleteFunc(item)
+			var err error
+			if archive.Contains(item) {
+				err = archive.Delete([]string{item})
+			} else {
+				err = deleteFunc(item)
+			}
 			if err != nil {
 				process.State = processbar.Failed
 				slog.Error("Error in delete operation", "item", item, "useTrash", useTrash, "error", err)
@@ -249,7 +255,7 @@ func (m *model) getDeleteTriggerCmd(deletePermanent bool) tea.Cmd {
 		content := common.TrashWarnContent
 		action := notify.DeleteAction
 
-		if !m.hasTrash || !trash.Available(panel.Location) || deletePermanent {
+		if !m.hasTrash || !trash.Available(panel.Location) && !archive.IsLocation(panel.Location) || deletePermanent {
 			title = common.PermanentDeleteWarnTitle
 			content = common.PermanentDeleteWarnContent
 			action = notify.PermanentDeleteAction
@@ -406,6 +412,9 @@ func validatePasteOperation(panelLocation string, copyItems []string, cut bool) 
 func pasteSingleItem(filePath string, panelLocation string, cut bool,
 	process *processbar.Process, processBarModel *processbar.Model,
 ) (string, error) {
+	if archive.Contains(filePath) || archive.IsLocation(panelLocation) {
+		return "archive paste error", pasteWithArchive(filePath, panelLocation, cut)
+	}
 	if cut && !isExternalDiskPath(filePath) {
 		dst, err := renameIfDuplicate(filepath.Join(panelLocation, filepath.Base(filePath)))
 		if err == nil {
@@ -489,6 +498,10 @@ func (m *model) executePasteOperation(processBarModel *processbar.Model,
 func getTotalFilesCnt(copyItems []string) int {
 	totalFiles := 0
 	for _, folderPath := range copyItems {
+		if archive.Contains(folderPath) {
+			totalFiles++
+			continue
+		}
 		// TODO : Fix this. This is inefficient
 		// In case of a cut operations for a directory with a lot of files
 		// we are unnecessarily walking the whole directory recursively
@@ -602,7 +615,7 @@ func (m *model) openFileWithEditor() tea.Cmd {
 		slog.Error("Error while writing to chooser file, continuing with open via file editor", "error", err)
 	}
 
-	return tea.ExecProcess(editorCommand(panel.GetFocusedItem().Location), func(err error) tea.Msg {
+	return tea.ExecProcess(editorCommand(materializeOrSelf(panel.GetFocusedItem().Location)), func(err error) tea.Msg {
 		return editorFinishedMsg{err}
 	})
 }
@@ -643,7 +656,18 @@ func (m *model) confirmEditorPicker() tea.Cmd {
 	return m.runEditor(m.pendingEditors[idx], m.pendingEditPath)
 }
 
+// materializeOrSelf extracts a file from an archive to a temporary location
+func materializeOrSelf(path string) string {
+	real, err := archive.Materialize(path)
+	if err != nil {
+		slog.Error("Error while extracting file from archive", "error", err)
+		return path
+	}
+	return real
+}
+
 func (m *model) runEditor(e editors.Editor, path string) tea.Cmd {
+	path = materializeOrSelf(path)
 	if e.Terminal {
 		return tea.ExecProcess(editorCommand(path), func(err error) tea.Msg {
 			return editorFinishedMsg{err}

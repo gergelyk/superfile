@@ -283,6 +283,8 @@ func (m *model) filePanelSelectModeKey(msg string) tea.Cmd {
 		m.panelItemRename()
 	case slices.Contains(common.Hotkeys.FilePanelItemRenameCase, msg):
 		m.openCaseRenamePicker()
+	case slices.Contains(common.Hotkeys.FilePanelItemRenameRegex, msg):
+		m.openRegexRename()
 	case slices.Contains(common.Hotkeys.SearchBar, msg):
 		m.searchBarFocus()
 	case slices.Contains(common.Hotkeys.CopyPath, msg):
@@ -309,6 +311,8 @@ func (m *model) filePanelNormalModeKey(msg string) tea.Cmd {
 		m.panelItemRename()
 	case slices.Contains(common.Hotkeys.FilePanelItemRenameCase, msg):
 		m.openCaseRenamePicker()
+	case slices.Contains(common.Hotkeys.FilePanelItemRenameRegex, msg):
+		m.openRegexRename()
 	case slices.Contains(common.Hotkeys.SearchBar, msg):
 		m.searchBarFocus()
 	case slices.Contains(common.Hotkeys.CopyPath, msg):

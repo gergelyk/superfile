@@ -51,7 +51,8 @@ focus_on_metadata = ['ctrl+d', '']
 file_panel_item_create = ['a', '']
 file_panel_dir_create = ['f7', '']
 file_panel_item_rename = ['r', 'f2', '']
-file_panel_item_rename_case = ['ctrl+shift+r', '']
+file_panel_item_rename_case = ['ctrl+t', '']
+file_panel_item_rename_regex = ['ctrl+y', '']
 
 #-- Main File Operations
 copy_items = ['y', '']

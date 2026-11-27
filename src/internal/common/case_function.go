@@ -9,24 +9,37 @@ type NameCase int
 
 const (
 	SnakeCase NameCase = iota
-	CamelCase
+	PascalCase
 	UpperCase
-	DashedCase
+	KebabCase
+	FlatCase
+	NaturalCase
+	PascalSnakeCase
+	// NumberedCase replaces names with consecutive zero padded numbers. It is applied to a list, see ConvertCase.
+	NumberedCase
 )
 
 // NameCases lists all supported cases in the order they are offered to the user
-var NameCases = []NameCase{SnakeCase, CamelCase, UpperCase, DashedCase}
+var NameCases = []NameCase{SnakeCase, PascalCase, UpperCase, KebabCase, FlatCase, NaturalCase, PascalSnakeCase, NumberedCase}
 
 func (c NameCase) String() string {
 	switch c {
 	case SnakeCase:
 		return "snake_case"
-	case CamelCase:
-		return "CamelCase"
+	case PascalCase:
+		return "PascalCase"
 	case UpperCase:
 		return "UPPER_CASE"
-	case DashedCase:
-		return "dashed-name"
+	case KebabCase:
+		return "kebab-case"
+	case FlatCase:
+		return "flatcase"
+	case NaturalCase:
+		return "Natural Case"
+	case PascalSnakeCase:
+		return "Pascal_Snake_Case"
+	case NumberedCase:
+		return "numbered"
 	}
 	return ""
 }
@@ -67,18 +80,28 @@ func ConvertCase(name string, c NameCase) string {
 	switch c {
 	case SnakeCase:
 		return strings.ToLower(strings.Join(words, "_"))
-	case DashedCase:
+	case KebabCase:
 		return strings.ToLower(strings.Join(words, "-"))
+	case FlatCase:
+		return strings.ToLower(strings.Join(words, ""))
 	case UpperCase:
 		return strings.ToUpper(strings.Join(words, "_"))
-	case CamelCase:
-		var sb strings.Builder
-		for _, w := range words {
-			runes := []rune(strings.ToLower(w))
-			runes[0] = unicode.ToUpper(runes[0])
-			sb.WriteString(string(runes))
-		}
-		return sb.String()
+	case PascalCase:
+		return strings.Join(capitalizeAll(words), "")
+	case NaturalCase:
+		return strings.Join(capitalizeAll(words), " ")
+	case PascalSnakeCase:
+		return strings.Join(capitalizeAll(words), "_")
 	}
 	return name
+}
+
+func capitalizeAll(words []string) []string {
+	res := make([]string, len(words))
+	for i, w := range words {
+		runes := []rune(strings.ToLower(w))
+		runes[0] = unicode.ToUpper(runes[0])
+		res[i] = string(runes)
+	}
+	return res
 }

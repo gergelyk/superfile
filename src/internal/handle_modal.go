@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -8,7 +9,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/internal/ui/filepanel"
+	"github.com/yorukot/superfile/src/internal/ui/notify"
 	"github.com/yorukot/superfile/src/internal/ui/processbar"
 	"github.com/yorukot/superfile/src/pkg/utils"
 )
@@ -26,6 +29,12 @@ func createItem(location, item string) error {
 		return err
 	}
 	path := filepath.Join(location, item)
+	if archive.IsLocation(location) {
+		if !strings.HasSuffix(item, string(filepath.Separator)) {
+			return errors.New("only directories can be created inside an archive")
+		}
+		return archive.Mkdir(path)
+	}
 	if !strings.HasSuffix(item, string(filepath.Separator)) {
 		path, _ = renameIfDuplicate(path)
 		if err := os.MkdirAll(filepath.Dir(path), utils.UserDirPerm); err != nil {
@@ -143,9 +152,16 @@ func (m *model) confirmRename() {
 	newPath := filepath.Join(panel.Location, panel.Rename.Value())
 
 	// Rename the file
-	err := os.Rename(oldPath, newPath)
+	rename := os.Rename
+	if archive.Contains(oldPath) {
+		rename = archive.Rename
+	}
+	err := rename(oldPath, newPath)
 	if err != nil {
 		slog.Error("Error while confirmRename during rename", "error", err)
+		if archive.Contains(oldPath) {
+			m.showNotify("Cannot rename", err.Error(), notify.NoAction)
+		}
 		// Dont return. We have to also reset the panel and model information
 	}
 	m.fileModel.Renaming = false

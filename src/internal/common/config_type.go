@@ -161,10 +161,11 @@ type HotkeysType struct {
 	FocusOnSidebar    []string `toml:"focus_on_sidebar"`
 	FocusOnMetaData   []string `toml:"focus_on_metadata"`
 
-	FilePanelItemCreate     []string `toml:"file_panel_item_create" comment:"create file/directory and rename "`
-	FilePanelDirCreate      []string `toml:"file_panel_dir_create"`
-	FilePanelItemRename     []string `toml:"file_panel_item_rename"`
-	FilePanelItemRenameCase []string `toml:"file_panel_item_rename_case"`
+	FilePanelItemCreate      []string `toml:"file_panel_item_create" comment:"create file/directory and rename "`
+	FilePanelDirCreate       []string `toml:"file_panel_dir_create"`
+	FilePanelItemRename      []string `toml:"file_panel_item_rename"`
+	FilePanelItemRenameCase  []string `toml:"file_panel_item_rename_case"`
+	FilePanelItemRenameRegex []string `toml:"file_panel_item_rename_regex"`
 
 	CopyItems              []string `toml:"copy_items"               comment:"file operate"`
 	PasteItems             []string `toml:"paste_items"`

@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -9,6 +10,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/internal/ui/processbar"
 	"github.com/yorukot/superfile/src/pkg/utils"
 )
@@ -285,4 +287,46 @@ func isAncestor(src, dst string) bool {
 
 	// If rel is "." or doesn't start with "..", then dst is inside src
 	return rel == "." || !strings.HasPrefix(rel, "..")
+}
+
+// pasteWithArchive copies or moves an item when the source or the destination
+// is inside an archive. Moving between two archives is not supported, because
+// it would need unpacking.
+func pasteWithArchive(src, dstDir string, cut bool) error {
+	srcIn := archive.Contains(src)
+	dstIn := archive.IsLocation(dstDir)
+	var err error
+	switch {
+	case srcIn && dstIn:
+		srcArch, _, _ := archive.Split(src)
+		dstArch, _, _ := archive.Split(dstDir)
+		if !cut || srcArch != dstArch {
+			return errors.New("copying between archives is not supported")
+		}
+		var name string
+		if name, err = archive.UniqueName(dstDir, filepath.Base(src)); err != nil {
+			return err
+		}
+		return archive.Rename(src, filepath.Join(dstDir, name))
+	case srcIn:
+		var dst string
+		if dst, err = renameIfDuplicate(filepath.Join(dstDir, filepath.Base(src))); err != nil {
+			return err
+		}
+		if err = archive.Extract(src, dst); err != nil {
+			os.RemoveAll(dst)
+			return err
+		}
+		if cut {
+			return archive.Delete([]string{src})
+		}
+	default:
+		if err = archive.Add(dstDir, []string{src}); err != nil {
+			return err
+		}
+		if cut {
+			return os.RemoveAll(src)
+		}
+	}
+	return nil
 }

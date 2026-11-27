@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/pkg/utils"
 )
 
@@ -27,7 +28,11 @@ func (m *Model) UpdateCurrentFilePanelDir(path string) error {
 		directoryRender: m.renderIndex,
 	}
 
-	if info, err := os.Stat(path); err != nil {
+	stat := os.Stat
+	if archive.IsLocation(path) {
+		stat = archive.Stat
+	}
+	if info, err := stat(path); err != nil {
 		return fmt.Errorf("%s : no such file or directory, stats err : %w", path, err)
 	} else if !info.IsDir() {
 		return fmt.Errorf("%s is not a directory", path)

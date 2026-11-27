@@ -25,12 +25,7 @@ func (m *Model) scrollToCursor(cursor int) {
 }
 
 func (m *Model) moveCursorBy(delta int) {
-	if m.Empty() {
-		return
-	}
-	// Wrap cursor
-	cursor := (m.cursor + delta + m.ElemCount()) % m.ElemCount()
-	m.scrollToCursor(cursor)
+	m.pageScrollBy(delta)
 }
 
 func (m *Model) pageScrollBy(delta int) {

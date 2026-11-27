@@ -235,7 +235,12 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 		},
 		{
 			hotkey:         common.Hotkeys.FilePanelItemRenameCase,
-			description:    "Rename selected items to snake_case, CamelCase, UPPER_CASE or dashed-name",
+			description:    "Rename selected items to snake_case, PascalCase, UPPER_CASE, kebab-case, flatcase, Natural Case, Pascal_Snake_Case or numbered",
+			hotkeyWorkType: globalType,
+		},
+		{
+			hotkey:         common.Hotkeys.FilePanelItemRenameRegex,
+			description:    "Rename selected items with a regular expression, with a preview",
 			hotkeyWorkType: globalType,
 		},
 		{

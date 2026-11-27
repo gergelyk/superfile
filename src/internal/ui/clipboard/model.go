@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strconv"
 
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/internal/common"
 	"github.com/yorukot/superfile/src/internal/ui"
 )
@@ -78,6 +79,9 @@ func (m *Model) SetItems(items []string) {
 
 func (m *Model) pruneInaccessibleItems() {
 	m.items.items = slices.DeleteFunc(m.items.items, func(item string) bool {
+		if archive.Contains(item) {
+			return !archive.Exists(item)
+		}
 		_, err := os.Lstat(item)
 		return err != nil
 	})

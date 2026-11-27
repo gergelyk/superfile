@@ -9,6 +9,7 @@ import (
 
 	"github.com/fvbommel/sortorder"
 
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/internal/common"
 	"github.com/yorukot/superfile/src/internal/ui/sortmodel"
 )
@@ -66,13 +67,13 @@ func getSizeOrderingFunc(elements []Element, reversed bool) sliceOrderFunc {
 		// This needs to be improved, and we should sort by actual size only
 		// Repeated recursive read would be slow, so we could cache
 		if elements[i].Directory && elements[j].Directory {
-			filesI, err := os.ReadDir(elements[i].Location)
+			filesI, err := archive.ReadDir(elements[i].Location)
 			// No need of early return, we only call len() on filesI, so nil would
 			// just result in 0
 			if err != nil {
 				slog.Error("Error when reading directory during sort", "error", err)
 			}
-			filesJ, err := os.ReadDir(elements[j].Location)
+			filesJ, err := archive.ReadDir(elements[j].Location)
 			if err != nil {
 				slog.Error("Error when reading directory during sort", "error", err)
 			}

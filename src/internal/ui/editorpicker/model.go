@@ -18,6 +18,27 @@ type Model struct {
 	Cursor int
 	Width  int
 	Height int
+	// Previews optionally holds, for every item, lines shown below the list while it is under the cursor
+	Previews    [][]string
+	previewRows int
+}
+
+// maxPreviewRows limits how many preview lines are shown at once
+const maxPreviewRows = 12
+
+// SetPreviews attaches preview lines to the items and resizes the modal to fit them
+func (m *Model) SetPreviews(previews [][]string) {
+	m.Previews = previews
+	m.previewRows = 0
+	for _, lines := range previews {
+		m.previewRows = max(m.previewRows, min(len(lines), maxPreviewRows+1))
+		for _, l := range lines {
+			m.Width = max(m.Width, len([]rune(l))+common.BorderPadding+common.InnerPadding+1)
+		}
+	}
+	if m.previewRows > 0 {
+		m.Height += m.previewRows + 1
+	}
 }
 
 func (m *Model) Open(title string, items []string) {
@@ -25,6 +46,8 @@ func (m *Model) Open(title string, items []string) {
 	m.Title = title
 	m.Items = items
 	m.Cursor = 0
+	m.Previews = nil
+	m.previewRows = 0
 	m.Width = minWidth
 	for _, it := range items {
 		m.Width = max(m.Width, len([]rune(it))+common.BorderPadding+common.InnerPadding+4) //nolint:mnd // number prefix
@@ -69,6 +92,17 @@ func (m *Model) Render() string {
 			cursor = common.FilePanelCursorStyle.Render(icon.Cursor)
 		}
 		sb.WriteString(cursor + common.ModalStyle.Render(fmt.Sprintf(" %d. %s", i+1, it)) + "\n")
+	}
+	if m.previewRows > 0 && m.Cursor < len(m.Previews) {
+		sb.WriteString("\n")
+		lines := m.Previews[m.Cursor]
+		for i := range min(len(lines), m.previewRows) {
+			if i == maxPreviewRows {
+				sb.WriteString(common.ModalStyle.Render(fmt.Sprintf(" ... %d more", len(lines)-maxPreviewRows)) + "\n")
+				break
+			}
+			sb.WriteString(common.ModalStyle.Render(" "+lines[i]) + "\n")
+		}
 	}
 	bottomBorder := common.GenerateFooterBorder(
 		fmt.Sprintf("%d/%d", m.Cursor+1, len(m.Items)), m.Width-common.BorderPadding)

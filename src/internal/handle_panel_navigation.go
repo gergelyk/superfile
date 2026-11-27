@@ -108,5 +108,5 @@ func (m *model) setRegionFocus(region focusPanelType) {
 func (m *model) anyModalOpen() bool {
 	return m.spfError.IsOpen() || m.helpMenu.IsOpen() || m.promptModal.IsOpen() ||
 		m.zoxideModal.IsOpen() || m.editorPicker.IsOpen() || m.sortModal.IsOpen() ||
-		m.notifyModel.IsOpen() || m.typingModal.open
+		m.notifyModel.IsOpen() || m.typingModal.open || m.regexRename != nil
 }

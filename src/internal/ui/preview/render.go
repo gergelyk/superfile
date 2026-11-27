@@ -17,13 +17,17 @@ import (
 
 	"github.com/yorukot/superfile/src/pkg/utils"
 
+	"github.com/yorukot/superfile/src/internal/archive"
 	"github.com/yorukot/superfile/src/internal/common"
 	"github.com/yorukot/superfile/src/internal/ui"
 	"github.com/yorukot/superfile/src/internal/ui/rendering"
 )
 
+// Files inside archives bigger than this are not extracted for preview
+const maxArchivePreviewSize = 20 << 20
+
 func renderDirectoryPreview(r *rendering.Renderer, itemPath string, previewHeight int) string {
-	files, err := os.ReadDir(itemPath)
+	files, err := archive.ReadDir(itemPath)
 	if err != nil {
 		slog.Error("Error render directory preview", "error", err)
 		r.AddLines(common.FilePreviewDirectoryUnreadableText)
@@ -178,7 +182,21 @@ func (m *Model) RenderWithPath(
 		contentHeight = previewHeight - common.BorderPadding
 	}
 
-	fileInfo, infoErr := os.Stat(itemPath)
+	var fileInfo fs.FileInfo
+	var infoErr error
+	if archive.Contains(itemPath) {
+		fileInfo, infoErr = archive.Stat(itemPath)
+		if infoErr == nil && fileInfo.Mode().IsRegular() {
+			if fileInfo.Size() > maxArchivePreviewSize {
+				return r.AddLines(common.FilePreviewUnsupportedFormatText).Render(), kittyClear
+			}
+			if itemPath, infoErr = archive.Materialize(itemPath); infoErr == nil {
+				fileInfo, infoErr = os.Stat(itemPath)
+			}
+		}
+	} else {
+		fileInfo, infoErr = os.Stat(itemPath)
+	}
 	if infoErr != nil {
 		slog.Error("Error get file info", "error", infoErr)
 		return r.AddLines(common.FilePreviewNoFileInfoText).Render(), kittyClear
