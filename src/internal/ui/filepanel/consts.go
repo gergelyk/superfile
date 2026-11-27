@@ -1,6 +1,7 @@
 package filepanel
 
 import (
+	"os"
 	"time"
 
 	"github.com/yorukot/superfile/src/internal/common"
@@ -25,3 +26,6 @@ const (
 
 	emptyCursor = " "
 )
+
+// Any of the owner, group or other execute bits
+const executableBits os.FileMode = 0o111

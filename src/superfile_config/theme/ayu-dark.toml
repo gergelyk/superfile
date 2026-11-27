@@ -39,6 +39,9 @@ file_panel_top_directory_icon = "#aad94c"
 file_panel_top_path = "#ffcc66"
 file_panel_item_selected_fg = "#36a3d9"
 file_panel_item_selected_bg = "#1f2430"
+file_panel_dir_fg = "#ffcc66"
+file_panel_executable_fg = "#aad94c"
+file_panel_symlink_fg = "#36A3D9"
 
 #-- Footer
 footer_fg = "#b3b1ad"

@@ -18,13 +18,15 @@
 
 #-- Basic Actions
 confirm = ['enter', '']
-quit = ['ctrl+c', ''] # a.k.a. "theprimeagen troller"
-cd_quit = ['Q', '']
+quit = ['ctrl+c', 'Q'] # a.k.a. "theprimeagen troller"
+cd_quit = ['q', '']
 
 #-- Navigation
 list_up = ['k', '']
 list_down = ['j', '']
 page_up = ['pgup','']
+list_jump_up = ['ctrl+up', '']
+list_jump_down = ['ctrl+down', '']
 page_down = ['pgdown','']
 
 #-- File Panel Controls

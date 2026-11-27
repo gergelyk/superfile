@@ -121,6 +121,10 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *model) handleMouseMsg(msg tea.MouseMsg) {
+	if click, ok := msg.(tea.MouseClickMsg); ok && click.Button == tea.MouseLeft {
+		m.focusFilePanelAt(click.X, click.Y)
+		return
+	}
 	msgStr := msg.String()
 	if msgStr == "wheelup" || msgStr == "wheeldown" {
 		wheelMainAction(msgStr, m)
@@ -316,6 +320,11 @@ func (m *model) handleKeyInput(msg tea.KeyPressMsg) tea.Cmd {
 		m.firstUse = false
 		return nil
 	}
+	// Two quick Esc presses arrive as one "alt+esc" event, which skips the
+	// terminal's escape timeout. Treat it as a plain Esc.
+	if msg.Code == tea.KeyEsc && msg.Mod == tea.ModAlt {
+		msg = tea.KeyPressMsg{Code: tea.KeyEsc}
+	}
 	var cmd tea.Cmd
 	cdOnQuit := common.Config.CdOnQuit
 	switch {
@@ -353,6 +362,10 @@ func (m *model) handleKeyInput(msg tea.KeyPressMsg) tea.Cmd {
 	// If help menu is open
 	case m.helpMenu.IsOpen():
 		m.helpMenu.HandleKey(msg.String())
+
+	// Esc deselects all items instead of quitting, when no modal is open
+	case msg.String() == "esc":
+		m.getFocusedFilePanel().ResetSelected()
 
 	case slices.Contains(common.Hotkeys.Quit, msg.String()):
 		m.modelQuitState = quitInitiated

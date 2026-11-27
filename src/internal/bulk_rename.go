@@ -240,9 +240,9 @@ func (m *model) handleRenameSelection(panel *filepanel.Model, msg tea.Msg) bool 
 	switch key.String() {
 	case "backspace", "delete":
 		removeSelection()
-	case "left", "home":
+	case "left", "home", "ctrl+left", "alt+left":
 		panel.Rename.SetCursor(0)
-	case "right", "end":
+	case "right", "end", "ctrl+right", "alt+right":
 		panel.Rename.SetCursor(end)
 	default:
 		if key.Text != "" {

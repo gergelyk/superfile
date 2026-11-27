@@ -1,5 +1,7 @@
 package common
 
+import "slices"
+
 // Theme configuration
 type ThemeType struct {
 	// Code syntax highlight theme
@@ -45,6 +47,9 @@ type ThemeType struct {
 	FilePanelTopPath          string `toml:"file_panel_top_path"`
 	FilePanelItemSelectedFG   string `toml:"file_panel_item_selected_fg"`
 	FilePanelItemSelectedBG   string `toml:"file_panel_item_selected_bg"`
+	FilePanelDirFG            string `toml:"file_panel_dir_fg"`
+	FilePanelExecutableFG     string `toml:"file_panel_executable_fg"`
+	FilePanelSymlinkFG        string `toml:"file_panel_symlink_fg"`
 
 	// Sidebar Special Items
 	SidebarTitle          string `toml:"sidebar_title"`
@@ -95,6 +100,7 @@ type ConfigType struct {
 	// IgnoreMissingFields controls whether warnings about missing TOML fields are suppressed.
 	IgnoreMissingFields   bool `toml:"ignore_missing_fields"    comment:"\nWhether to ignore warnings about missing fields in the config file."`
 	PageScrollSize        int  `toml:"page_scroll_size"         comment:"\nNumber of lines to scroll for PgUp/PgDown keys (0: full page, default behavior)."`
+	JumpScrollSize        int  `toml:"jump_scroll_size"         comment:"\nNumber of items the cursor jumps by in a file panel with the list_jump_up/list_jump_down keys (default: 5)."`
 	FilePanelExtraColumns int  `toml:"file_panel_extra_columns" comment:"\nCount of extra columns in file panel in addition to file name. When option equal 0 then feature is disabled."`
 	FilePanelNamePercent  int  `toml:"file_panel_name_percent"  comment:"\nPercentage of file panel width allocated to file names (25-100). Higher values give more space to names, less to extra columns."`
 
@@ -135,10 +141,12 @@ type HotkeysType struct {
 	CdQuit  []string `toml:"cd_quit"`
 
 	// movement
-	ListUp   []string `toml:"list_up"   comment:"movement"`
-	ListDown []string `toml:"list_down"`
-	PageUp   []string `toml:"page_up"`
-	PageDown []string `toml:"page_down"`
+	ListUp       []string `toml:"list_up"   comment:"movement"`
+	ListDown     []string `toml:"list_down"`
+	PageUp       []string `toml:"page_up"`
+	ListJumpUp   []string `toml:"list_jump_up"`
+	ListJumpDown []string `toml:"list_jump_down"`
+	PageDown     []string `toml:"page_down"`
 
 	CloseFilePanel         []string `toml:"close_file_panel"          comment:"file panel control"`
 	CreateNewFilePanel     []string `toml:"create_new_file_panel"`
@@ -198,4 +206,10 @@ type HotkeysType struct {
 	FilePanelSelectModeItemsSelectUp   []string `toml:"file_panel_select_mode_items_select_up"`
 	FilePanelSelectAllItem             []string `toml:"file_panel_select_all_items"`
 	FilePanelToggleSelectItem          []string `toml:"file_panel_toggle_select_item"`
+}
+
+// QuitKeys returns every key that quits superfile. They also cancel modals.
+// CdQuit comes first so that it is the one shown in modal labels.
+func (h HotkeysType) QuitKeys() []string {
+	return append(slices.Clone(h.CdQuit), h.Quit...)
 }

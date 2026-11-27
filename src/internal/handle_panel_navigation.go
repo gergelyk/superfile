@@ -58,3 +58,26 @@ func (m *model) focusOnMetadata() {
 		m.getFocusedFilePanel().IsFocused = false
 	}
 }
+
+// focusFilePanelAt focuses the file panel under the given screen cell, if any.
+// Clicks are ignored while a modal is open.
+func (m *model) focusFilePanelAt(x, y int) {
+	if m.anyModalOpen() || y >= m.mainPanelHeight+common.BorderPadding {
+		return
+	}
+	if m.sidebarVisible() {
+		x -= m.sidebarModel.GetWidth()
+	}
+	index := m.fileModel.PanelIndexAtX(x)
+	if index < 0 {
+		return
+	}
+	m.focusPanel = nonePanelFocus
+	m.fileModel.FocusPanel(index)
+}
+
+func (m *model) anyModalOpen() bool {
+	return m.spfError.IsOpen() || m.helpMenu.IsOpen() || m.promptModal.IsOpen() ||
+		m.zoxideModal.IsOpen() || m.editorPicker.IsOpen() || m.sortModal.IsOpen() ||
+		m.notifyModel.IsOpen() || m.typingModal.open
+}

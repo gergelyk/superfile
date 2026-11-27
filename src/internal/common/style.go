@@ -39,6 +39,9 @@ var (
 	FilePanelTopDirectoryIconStyle lipgloss.Style
 	FilePanelTopPathStyle          lipgloss.Style
 	FilePanelItemSelectedStyle     lipgloss.Style
+	FilePanelDirStyle              lipgloss.Style
+	FilePanelExecutableStyle       lipgloss.Style
+	FilePanelSymlinkStyle          lipgloss.Style
 	FilePanelSelectBoxStyle        lipgloss.Style
 )
 
@@ -197,6 +200,9 @@ func LoadThemeConfig() { //nolint: funlen // Variable initialization
 	FilePanelItemSelectedStyle = lipgloss.NewStyle().Foreground(filePanelItemSelectedFGColor).
 		Background(filePanelItemSelectedBGColor)
 	FilePanelSelectBoxStyle = lipgloss.NewStyle().Background(FilePanelBGColor)
+	FilePanelDirStyle = filePanelNameStyle(Theme.FilePanelDirFG)
+	FilePanelExecutableStyle = filePanelNameStyle(Theme.FilePanelExecutableFG)
+	FilePanelSymlinkStyle = filePanelNameStyle(Theme.FilePanelSymlinkFG)
 
 	// Sidebar Special Style
 	SidebarDividerStyle = lipgloss.NewStyle().Foreground(sidebarDividerColor).Background(SidebarBGColor)
@@ -238,4 +244,13 @@ func TransparentAllBackgroundColor() {
 	SidebarBGColor = lipgloss.Color(TransparentBackgroundColor)
 	FooterBGColor = lipgloss.Color(TransparentBackgroundColor)
 	ModalBGColor = lipgloss.Color(TransparentBackgroundColor)
+}
+
+// filePanelNameStyle returns the file panel style with a dedicated foreground.
+// An empty color keeps the regular file panel foreground.
+func filePanelNameStyle(fg string) lipgloss.Style {
+	if fg == "" {
+		return FilePanelStyle
+	}
+	return FilePanelStyle.Foreground(lipgloss.Color(fg))
 }

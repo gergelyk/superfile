@@ -51,7 +51,7 @@ func (m *Model) HandleUpdate(msg tea.Msg) (common.ModelAction, tea.Cmd) {
 			switch {
 			case slices.Contains(common.Hotkeys.ConfirmTyping, msg.String()),
 				slices.Contains(common.Hotkeys.CancelTyping, msg.String()),
-				slices.Contains(common.Hotkeys.Quit, msg.String()):
+				slices.Contains(common.Hotkeys.QuitKeys(), msg.String()):
 				m.Close()
 			}
 			return action, cmd

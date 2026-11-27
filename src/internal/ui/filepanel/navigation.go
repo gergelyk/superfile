@@ -2,6 +2,8 @@ package filepanel
 
 import (
 	"fmt"
+
+	"github.com/yorukot/superfile/src/internal/common"
 )
 
 func (m *Model) scrollToCursor(cursor int) {
@@ -52,6 +54,25 @@ func (m *Model) ListUp() {
 // Control file panel list down
 func (m *Model) ListDown() {
 	m.moveCursorBy(1)
+}
+
+const defaultJumpScrollSize = 5
+
+func (m *Model) getJumpScrollSize() int {
+	if common.Config.JumpScrollSize <= 0 {
+		return defaultJumpScrollSize
+	}
+	return common.Config.JumpScrollSize
+}
+
+// JumpUp moves the cursor up by the configured jump size, stopping at the first item
+func (m *Model) JumpUp() {
+	m.pageScrollBy(-m.getJumpScrollSize())
+}
+
+// JumpDown moves the cursor down by the configured jump size, stopping at the last item
+func (m *Model) JumpDown() {
+	m.pageScrollBy(m.getJumpScrollSize())
 }
 
 func (m *Model) PgUp() {

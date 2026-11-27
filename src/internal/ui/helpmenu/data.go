@@ -26,12 +26,12 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 		},
 		{
 			hotkey:         common.Hotkeys.Quit,
-			description:    "Quit typing, modal or superfile",
+			description:    "Quit superfile without changing directory",
 			hotkeyWorkType: globalType,
 		},
 		{
 			hotkey:         common.Hotkeys.CdQuit,
-			description:    "Quit superfile and change directory to current folder",
+			description:    "Quit superfile and change directory to current folder. Also cancels modals",
 			hotkeyWorkType: globalType,
 		},
 		{
@@ -153,6 +153,16 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 		{
 			hotkey:         common.Hotkeys.ListDown,
 			description:    "Down",
+			hotkeyWorkType: globalType,
+		},
+		{
+			hotkey:         common.Hotkeys.ListJumpUp,
+			description:    "Jump up by several items",
+			hotkeyWorkType: globalType,
+		},
+		{
+			hotkey:         common.Hotkeys.ListJumpDown,
+			description:    "Jump down by several items",
 			hotkeyWorkType: globalType,
 		},
 		{

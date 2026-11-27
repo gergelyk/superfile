@@ -15,14 +15,16 @@
 
 #-- Basic Actions
 confirm = ['enter', 'right', 'l']
-cd_quit = ['Q', '']
-quit = ['q', 'esc']
+cd_quit = ['q', '']
+quit = ['Q', 'esc'] # In the main file panel, esc deselects all items instead of quitting
 
 #-- Navigation
 list_down = ['down', 'j']
 list_up = ['up', 'k']
 page_down = ['pgdown','']
 page_up = ['pgup','']
+list_jump_up = ['ctrl+up', '']
+list_jump_down = ['ctrl+down', '']
 
 #-- File Panel Controls
 close_file_panel = ['w', '']

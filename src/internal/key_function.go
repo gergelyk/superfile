@@ -52,6 +52,16 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 			m.getFocusedFilePanel().ListDown()
 		}
 
+	case slices.Contains(common.Hotkeys.ListJumpUp, msg):
+		if m.focusPanel == nonePanelFocus {
+			m.getFocusedFilePanel().JumpUp()
+		}
+
+	case slices.Contains(common.Hotkeys.ListJumpDown, msg):
+		if m.focusPanel == nonePanelFocus {
+			m.getFocusedFilePanel().JumpDown()
+		}
+
 	case slices.Contains(common.Hotkeys.PageUp, msg):
 		switch m.focusPanel {
 		case metadataFocus:
@@ -316,9 +326,14 @@ func (m *model) typingModalOpenKey(msg string) tea.Cmd {
 	return nil
 }
 
+// Space confirms dialogs that have no text input
+func isSpaceKey(msg string) bool {
+	return msg == "space" || msg == " "
+}
+
 func (m *model) notifyModelOpenKey(msg string) tea.Cmd {
-	isCancel := slices.Contains(common.Hotkeys.CancelTyping, msg) || slices.Contains(common.Hotkeys.Quit, msg)
-	isConfirm := slices.Contains(common.Hotkeys.ConfirmTyping, msg)
+	isCancel := slices.Contains(common.Hotkeys.CancelTyping, msg) || slices.Contains(common.Hotkeys.QuitKeys(), msg)
+	isConfirm := slices.Contains(common.Hotkeys.ConfirmTyping, msg) || isSpaceKey(msg)
 
 	if !isCancel && !isConfirm {
 		slog.Warn("Invalid keypress in notifyModel", "msg", msg)
@@ -378,7 +393,7 @@ func (m *model) handleNotifyModelConfirm(action notify.ConfirmActionType) tea.Cm
 
 func (m *model) spfErrorModelOpenKey(msg string) tea.Cmd {
 	isAbort := slices.Contains(spferror.KeyAbort(), msg)
-	isSkip := slices.Contains(spferror.KeySkip(), msg)
+	isSkip := slices.Contains(spferror.KeySkip(), msg) || isSpaceKey(msg)
 
 	if !isAbort && !isSkip {
 		slog.Warn("Invalid keypress in spfErrorModel", "msg", msg)
@@ -404,9 +419,9 @@ func (m *model) sortOptionsKey(msg string) {
 	switch {
 	case slices.Contains(common.Hotkeys.OpenSortOptionsMenu, msg):
 		m.sortModal.Close()
-	case slices.Contains(common.Hotkeys.Quit, msg):
+	case slices.Contains(common.Hotkeys.QuitKeys(), msg):
 		m.sortModal.Close()
-	case slices.Contains(common.Hotkeys.Confirm, msg):
+	case slices.Contains(common.Hotkeys.Confirm, msg), isSpaceKey(msg):
 		m.confirmSortOptions()
 	case slices.Contains(common.Hotkeys.ListUp, msg):
 		m.sortModal.ListUp()
@@ -418,9 +433,9 @@ func (m *model) sortOptionsKey(msg string) {
 // Handles key inputs inside the editor picker
 func (m *model) editorPickerKey(msg string) tea.Cmd {
 	switch {
-	case slices.Contains(common.Hotkeys.Quit, msg), slices.Contains(common.Hotkeys.OpenWithEditor, msg):
+	case slices.Contains(common.Hotkeys.QuitKeys(), msg), slices.Contains(common.Hotkeys.OpenWithEditor, msg):
 		m.editorPicker.Close()
-	case slices.Contains(common.Hotkeys.Confirm, msg):
+	case slices.Contains(common.Hotkeys.Confirm, msg), isSpaceKey(msg):
 		return m.confirmEditorPicker()
 	case slices.Contains(common.Hotkeys.ListUp, msg):
 		m.editorPicker.ListUp()

@@ -70,7 +70,7 @@ func KeySkip() []string {
 }
 
 func KeyAbort() []string {
-	return common.Hotkeys.Quit
+	return common.Hotkeys.QuitKeys()
 }
 
 func (m *Model) Render() string {

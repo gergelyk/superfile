@@ -188,6 +188,6 @@ func LoadPrerenderedVariables() {
 	ModalOkayInputText = MainStyle.AlignHorizontal(lipgloss.Center).AlignVertical(lipgloss.Center).Render(
 		ModalConfirm.Render(" (" + Hotkeys.ConfirmTyping[0] + ") Okay "))
 	ModalConfirmInputText = ModalConfirm.Render(" (" + Hotkeys.ConfirmTyping[0] + ") Confirm ")
-	ModalCancelInputText = ModalCancel.Render(" (" + Hotkeys.Quit[0] + ") Cancel ")
+	ModalCancelInputText = ModalCancel.Render(" (" + Hotkeys.QuitKeys()[0] + ") Cancel ")
 	ModalInputSpacingText = lipgloss.NewStyle().Background(ModalBGColor).Render("           ")
 }
