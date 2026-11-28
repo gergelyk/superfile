@@ -25,3 +25,5 @@ const (
 
 	emptyCursor = " "
 )
+
+const freeSpaceRefreshInterval = 2 * time.Second

@@ -7,6 +7,8 @@ import (
 	"os"
 	"reflect"
 	"runtime"
+	"strconv"
+	"strings"
 
 	zoxidelib "github.com/lazysegtree/go-zoxide"
 
@@ -91,6 +93,7 @@ func initialConfig(firstPanelPaths []string) (toggleDotFile bool, //nolint: nona
 
 	toggleDotFile = utils.ReadBoolFile(variable.ToggleDotFile, false)
 	toggleFooter = utils.ReadBoolFile(variable.ToggleFooter, true)
+	common.SetSuffixMode(readSuffixMode())
 
 	return toggleDotFile, toggleFooter, zClient
 }
@@ -186,4 +189,24 @@ func LoadLastSession() ([]string, *bool) {
 		}
 	}
 	return paths, previewOpen
+}
+
+// readSuffixMode loads the saved suffix view. Anything unknown means the default one.
+func readSuffixMode() common.SuffixPlacement {
+	data, err := os.ReadFile(variable.SuffixModeFile)
+	if err != nil {
+		return common.SuffixInline
+	}
+	mode, err := strconv.Atoi(strings.TrimSpace(string(data)))
+	if err != nil || mode < 0 || mode >= int(common.SuffixModeCount) {
+		return common.SuffixInline
+	}
+	return common.SuffixPlacement(mode)
+}
+
+func saveSuffixMode() {
+	err := os.WriteFile(variable.SuffixModeFile, []byte(strconv.Itoa(int(common.SuffixMode))), utils.ConfigFilePerm)
+	if err != nil {
+		slog.Error("Error while saving the suffix view", "error", err)
+	}
 }

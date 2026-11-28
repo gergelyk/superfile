@@ -24,3 +24,12 @@ func getOwnerAndGroup(fileInfo os.FileInfo) (string, string) {
 	}
 	return usr, grp
 }
+
+// getSizeOnDisk returns the space allocated for the file. st_blocks is always in 512 byte units.
+func getSizeOnDisk(fileInfo os.FileInfo) int64 {
+	const blockSize = 512
+	if stat, ok := fileInfo.Sys().(*syscall.Stat_t); ok {
+		return int64(stat.Blocks) * blockSize //nolint:unconvert // Blocks is not int64 on all platforms
+	}
+	return fileInfo.Size()
+}

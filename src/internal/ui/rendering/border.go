@@ -12,6 +12,8 @@ type BorderConfig struct {
 	// ANSI encoded strings are not allowed in border title and info items, for now.
 	// The style is overridden with border's style.
 	title string
+	// Title is centered on the top border instead of being at the left
+	titleCentered bool
 
 	// Optional short label at the right end of the top border
 	topRightLabel string
@@ -37,6 +39,11 @@ func NewBorderConfig(height int, width int) BorderConfig {
 		width:           width,
 		titleLeftMargin: 1,
 	}
+}
+
+func (b *BorderConfig) SetTitleCentered(title string) {
+	b.SetTitle(title)
+	b.titleCentered = true
 }
 
 func (b *BorderConfig) SetTitle(title string) {
@@ -98,13 +105,17 @@ func (b *BorderConfig) GetBorder(borderStrings lipgloss.Border) lipgloss.Border 
 		truncatedTitle := ansi.Truncate(b.title, titleAvailWidth, "")
 		remainingWidth := actualWidth - borderCornerWidth - borderPaddingWidth - ansi.StringWidth(truncatedTitle)
 
+		leftWidth := b.titleLeftMargin
+		if b.titleCentered {
+			leftWidth = remainingWidth / 2 //nolint:mnd // half of the free space on each side
+		}
 		margin := ""
-		if remainingWidth > b.titleLeftMargin {
-			margin = strings.Repeat(borderStrings.Top, b.titleLeftMargin)
-			remainingWidth -= b.titleLeftMargin
+		if remainingWidth > leftWidth {
+			margin = strings.Repeat(borderStrings.Top, leftWidth)
+			remainingWidth -= leftWidth
 		}
 
-		// Title alignment is by default Left for now
+		// Title alignment is by default Left
 		res.Top = margin + borderStrings.MiddleRight + " " + truncatedTitle + " " + borderStrings.MiddleLeft +
 			strings.Repeat(borderStrings.Top, remainingWidth)
 	}

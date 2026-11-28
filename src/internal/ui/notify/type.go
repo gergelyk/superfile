@@ -11,4 +11,5 @@ const (
 	BulkRenameAction
 	TransferAction
 	BulkRenameRetryAction
+	SymlinkAction
 )

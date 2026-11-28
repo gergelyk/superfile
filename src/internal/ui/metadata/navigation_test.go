@@ -78,3 +78,31 @@ func TestPgUpDown(t *testing.T) {
 		})
 	}
 }
+
+func TestScrollStopsWhenLastLineVisible(t *testing.T) {
+	// 10 rows, 3 visible lines (height 5 minus borders), so the last first-visible row is 7
+	m := Model{metadata: Metadata{data: make([][2]string, 10)}, height: 5}
+	for range 7 {
+		m.ListDown()
+	}
+	assert.Equal(t, 7, m.renderIndex)
+	m.ListDown()
+	assert.Equal(t, 0, m.renderIndex, "wraps after the last position instead of scrolling past the end")
+
+	m.renderIndex = 9
+	m.ResetRenderIfInvalid()
+	assert.Equal(t, 0, m.renderIndex)
+}
+
+func TestPermissionSelectionScrollsIntoView(t *testing.T) {
+	data := make([][2]string, 10)
+	data[8] = [2]string{keyPermissions, "rwxr-xr-x / 755"}
+	m := Model{metadata: NewMetadata(data, "", ""), height: 5}
+	m.metadata.hasMode, m.metadata.mode = true, 0o755
+
+	m.MovePermissionSelection(1)
+	assert.Equal(t, 6, m.renderIndex, "row 8 is the last of 3 visible lines")
+	m.renderIndex = 9
+	m.MovePermissionSelection(1)
+	assert.Equal(t, 7, m.renderIndex, "scrolling up shows the row, within the allowed range")
+}

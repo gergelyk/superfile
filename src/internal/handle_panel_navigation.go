@@ -3,6 +3,8 @@ package internal
 import (
 	"log/slog"
 
+	tea "charm.land/bubbletea/v2"
+
 	"github.com/yorukot/superfile/src/internal/common"
 )
 
@@ -30,33 +32,41 @@ func (m *model) focusOnSideBar() {
 }
 
 // Focus on processbar
-func (m *model) focusOnProcessBar() {
-	if !m.toggleFooter {
-		return
-	}
-
-	if m.focusPanel == processBarFocus {
-		m.focusPanel = nonePanelFocus
-		m.getFocusedFilePanel().IsFocused = true
-	} else {
-		m.focusPanel = processBarFocus
-		m.getFocusedFilePanel().IsFocused = false
-	}
+func (m *model) focusOnProcessBar() tea.Cmd {
+	cmd := m.peekFooter()
+	// Pressing the key again keeps the focus here. Use next_file_panel to go back to the file panel.
+	m.setRegionFocus(processBarFocus)
+	return cmd
 }
 
 // focus on metadata
-func (m *model) focusOnMetadata() {
-	if !m.toggleFooter {
-		return
-	}
+func (m *model) focusOnMetadata() tea.Cmd {
+	cmd := m.peekFooter()
+	// Pressing the key again keeps the focus here. Use next_file_panel to go back to the file panel.
+	m.setRegionFocus(metadataFocus)
+	return cmd
+}
 
-	if m.focusPanel == metadataFocus {
-		m.focusPanel = nonePanelFocus
-		m.getFocusedFilePanel().IsFocused = true
-	} else {
-		m.focusPanel = metadataFocus
-		m.getFocusedFilePanel().IsFocused = false
+// peekFooter shows a hidden footer, until the focus leaves it. It does not change the saved setting.
+func (m *model) peekFooter() tea.Cmd {
+	if m.toggleFooter {
+		return nil
 	}
+	m.toggleFooter = true
+	m.footerPeek = true
+	m.setHeightValues()
+	return m.updateComponentDimensions()
+}
+
+// endFooterPeek hides the footer shown by peekFooter once the focus is outside of it
+func (m *model) endFooterPeek() tea.Cmd {
+	if !m.footerPeek || m.focusPanel == processBarFocus || m.focusPanel == metadataFocus {
+		return nil
+	}
+	m.footerPeek = false
+	m.toggleFooter = false
+	m.setHeightValues()
+	return m.updateComponentDimensions()
 }
 
 // focusRegionAt focuses the region (sidebar, file panel, process bar or metadata)

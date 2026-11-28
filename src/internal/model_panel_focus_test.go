@@ -4,10 +4,12 @@ import (
 	"path/filepath"
 	"testing"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	variable "github.com/yorukot/superfile/src/config"
+	"github.com/yorukot/superfile/src/internal/common"
 	"github.com/yorukot/superfile/src/pkg/utils"
 )
 
@@ -76,4 +78,48 @@ func TestNewPanelClearsNonFilePanelFocus(t *testing.T) {
 		assert.True(t, m.getFocusedFilePanel().IsFocused,
 			"the newly created file panel must be focused")
 	})
+}
+
+func TestMetadataAndProcessBarFocusKeys(t *testing.T) {
+	curTestDir := t.TempDir()
+	cases := []struct {
+		name     string
+		focusKey string
+		focus    focusPanelType
+	}{
+		{"process bar", common.Hotkeys.FocusOnProcessBar[0], processBarFocus},
+		{"metadata", common.Hotkeys.FocusOnMetaData[0], metadataFocus},
+	}
+	for _, cs := range cases {
+		t.Run(cs.name, func(t *testing.T) {
+			m := defaultTestModelWithFooterAndFilePreview(curTestDir)
+			TeaUpdate(m, utils.TeaRuneKeyMsg(cs.focusKey))
+			require.Equal(t, cs.focus, m.focusPanel)
+
+			TeaUpdate(m, utils.TeaRuneKeyMsg(cs.focusKey))
+			assert.Equal(t, cs.focus, m.focusPanel, "pressing the key again must keep the focus")
+			assert.False(t, m.getFocusedFilePanel().IsFocused)
+
+			TeaUpdate(m, tea.KeyPressMsg{Code: tea.KeyTab})
+			assert.Equal(t, nonePanelFocus, m.focusPanel, "tab must focus the file panel")
+			assert.True(t, m.getFocusedFilePanel().IsFocused)
+		})
+	}
+}
+
+func TestHiddenFooterIsShownWhileFocused(t *testing.T) {
+	m := defaultTestModelWithFooterAndFilePreview(t.TempDir())
+	m.toggleFooterController()
+	require.False(t, m.toggleFooter)
+	require.Zero(t, m.footerHeight)
+
+	TeaUpdate(m, utils.TeaRuneKeyMsg(common.Hotkeys.FocusOnMetaData[0]))
+	assert.Equal(t, metadataFocus, m.focusPanel)
+	assert.True(t, m.toggleFooter)
+	assert.NotZero(t, m.footerHeight)
+
+	TeaUpdate(m, tea.KeyPressMsg{Code: tea.KeyTab})
+	assert.Equal(t, nonePanelFocus, m.focusPanel)
+	assert.False(t, m.toggleFooter, "footer must hide again")
+	assert.Zero(t, m.footerHeight)
 }

@@ -57,6 +57,7 @@ file_panel_item_rename_case = ['ctrl+t', '']
 copy_items = ['y', '']
 cut_items = ['x', '']
 paste_items = ['p', '']
+create_symlink = ['ctrl+s', '']
 delete_items = ['d', '']
 permanently_delete_items = ['D', '']
 copy_to_next_panel = ['f5', '']
@@ -75,6 +76,7 @@ open_with_editor = ['E', 'f4']
 #-- Other Actions
 pinned_directory = ['P', '']
 toggle_dot_file = ['.', '']
+toggle_suffixes = [',', '']
 open_help_menu = ['?', '']
 open_spf_prompt = ['>', '']
 open_command_line = [':', '']
@@ -101,6 +103,7 @@ cancel_typing = ['esc', '']
 
 #-- Normal Mode Actions
 parent_directory = ['-', '']
+home_directory = ['~', '']
 search_bar = ['/', '']
 
 #-- Selection Mode Actions

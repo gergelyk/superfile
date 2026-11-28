@@ -22,6 +22,11 @@ type Model struct {
 	renderIndex int
 	IsFocused   bool
 	Location    string
+
+	// Free space of the filesystem of Location, refreshed periodically while rendering
+	freeSpaceText     string
+	freeSpaceLocation string
+	freeSpaceUpdated  time.Time
 	// Dimension fields
 	width  int // Total width including borders
 	height int // Total height including borders

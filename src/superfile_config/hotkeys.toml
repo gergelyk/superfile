@@ -56,6 +56,7 @@ copy_items = ['ctrl+c', '']
 cut_items = ['ctrl+x', '']
 delete_items = ['ctrl+d', 'delete', '']
 paste_items = ['ctrl+v', 'ctrl+w', '']
+create_symlink = ['ctrl+s', '']
 permanently_delete_items = ['D', '']
 copy_to_next_panel = ['f5', '']
 move_to_next_panel = ['f6', '']
@@ -78,6 +79,7 @@ open_help_menu = ['?', '']
 open_spf_prompt = ['>', '']
 open_zoxide = ['z', '']
 toggle_dot_file = ['.', '']
+toggle_suffixes = [',', '']
 toggle_footer = ['F', '']
 
 ###############################################################################
@@ -98,6 +100,7 @@ cancel_typing = ['esc', 'ctrl+c']
 
 #-- Normal Mode Actions
 parent_directory = ['h', 'left', 'backspace']
+home_directory = ['~', '']
 search_bar = ['/', '']
 
 #-- Selection Mode Actions

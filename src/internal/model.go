@@ -107,6 +107,8 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		slog.Debug("Message of type that is not explicitly handled")
 	}
 
+	resizeCmd = tea.Batch(resizeCmd, m.endFooterPeek())
+
 	// This is needed for blink, etc to work
 	panelCmd = m.updateComponentState(msg)
 
@@ -116,7 +118,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	filePreviewCmd = m.fileModel.GetFilePreviewCmd(false)
 
-	metadataCmd = m.getMetadataCmd()
+	metadataCmd = tea.Batch(m.getMetadataCmd(), m.getSelectionUsageCmd())
 
 	return m, tea.Batch(sidebarCmd, helpMenuCmd, inputCmd, updateCmd,
 		panelCmd, metadataCmd, filePreviewCmd, resizeCmd)
@@ -194,6 +196,29 @@ func (m *model) getMetadataCmd() tea.Cmd {
 	}
 }
 
+// getSelectionUsageCmd computes the cumulative size of the items selected in the focused file panel
+// whenever the selection changes.
+func (m *model) getSelectionUsageCmd() tea.Cmd {
+	if m.disableMetadata {
+		return nil
+	}
+	paths := m.getFocusedFilePanel().GetSelectedLocations()
+	slices.Sort(paths)
+	key := strings.Join(paths, "\x00")
+	if key == m.fileMetaData.GetSelectionKey() {
+		return nil
+	}
+	m.fileMetaData.ExpectSelection(key)
+	if len(paths) == 0 {
+		return nil
+	}
+	reqCnt := m.nextIoReqCnt()
+	slog.Debug("Submitting selection size request", "id", reqCnt, "count", len(paths))
+	return func() tea.Msg {
+		return NewSelectionUsageMsg(key, metadata.DiskUsage(paths), reqCnt)
+	}
+}
+
 // Adjust window size based on msg information
 func (m *model) handleWindowResize(msg tea.WindowSizeMsg) tea.Cmd {
 	m.fullHeight = msg.Height
@@ -207,15 +232,15 @@ func (m *model) setHeightValues() {
 	if !m.toggleFooter {
 		m.footerHeight = 0
 	} else if m.fullHeight < common.HeightBreakA {
-		m.footerHeight = 6
-	} else if m.fullHeight < common.HeightBreakB {
 		m.footerHeight = 7
-	} else if m.fullHeight < common.HeightBreakC {
+	} else if m.fullHeight < common.HeightBreakB {
 		m.footerHeight = 8
-	} else if m.fullHeight < common.HeightBreakD {
+	} else if m.fullHeight < common.HeightBreakC {
 		m.footerHeight = 9
-	} else {
+	} else if m.fullHeight < common.HeightBreakD {
 		m.footerHeight = 10
+	} else {
+		m.footerHeight = 11
 	}
 	// TODO : Make it grow even more for bigger screen sizes.
 	// TODO : Calculate the value , instead of manually hard coding it.

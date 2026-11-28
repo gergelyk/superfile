@@ -200,6 +200,28 @@ func (msg MetadataMsg) ApplyToModel(m *model) tea.Cmd {
 	return nil
 }
 
+type SelectionUsageMsg struct {
+	BaseMessage
+
+	key   string
+	usage metadata.Usage
+}
+
+func NewSelectionUsageMsg(key string, usage metadata.Usage, reqID int) SelectionUsageMsg {
+	return SelectionUsageMsg{
+		key:   key,
+		usage: usage,
+		BaseMessage: BaseMessage{
+			reqID: reqID,
+		},
+	}
+}
+
+func (msg SelectionUsageMsg) ApplyToModel(m *model) tea.Cmd {
+	m.fileMetaData.SetSelectionUsage(msg.key, msg.usage)
+	return nil
+}
+
 type NotifyModalUpdateMsg struct {
 	BaseMessage
 

@@ -2,9 +2,15 @@ package filepanel
 
 import (
 	"fmt"
+	"math"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
+
+	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
 
 	"github.com/yorukot/superfile/src/config/icon"
 	"github.com/yorukot/superfile/src/internal/common"
@@ -34,6 +40,7 @@ func PanelNumberLabel(index int) string {
 func (m *Model) Render(focused bool, index int) string {
 	r := ui.FilePanelRenderer(m.height, m.width, focused)
 	r.SetBorderTopRightLabel(PanelNumberLabel(index))
+	r.SetBorderTitleCentered(m.getFreeSpaceText())
 
 	m.renderTopBar(r)
 	m.renderSearchBar(r)
@@ -50,6 +57,20 @@ func (m *Model) renderTopBar(r *rendering.Renderer) {
 	truncatedPath := common.TruncateTextBeginning(m.Location, m.GetContentWidth()-common.InnerPadding, "...")
 	r.AddLines(common.FilePanelTopDirectoryIcon + common.FilePanelTopPathStyle.Render(truncatedPath))
 	r.AddSection()
+}
+
+// getFreeSpaceText returns text like "12.3 GiB free" for the filesystem of the panel's location.
+func (m *Model) getFreeSpaceText() string {
+	if m.freeSpaceLocation == m.Location && time.Since(m.freeSpaceUpdated) < freeSpaceRefreshInterval {
+		return m.freeSpaceText
+	}
+	m.freeSpaceLocation = m.Location
+	m.freeSpaceUpdated = time.Now()
+	m.freeSpaceText = ""
+	if free, ok := getFreeSpace(m.Location); ok {
+		m.freeSpaceText = common.FormatFileSize(int64(min(free, math.MaxInt64))) + " free" //nolint:gosec // clamped
+	}
+	return m.freeSpaceText
 }
 
 func (m *Model) renderSearchBar(r *rendering.Renderer) {
@@ -162,12 +183,28 @@ func (m *Model) NeedsReRender() bool {
 	return true
 }
 
+// renameInputPrefix is what a normal row has before the name, so that the edited name stays in place
+func (m *Model) renameInputPrefix() string {
+	elem := m.GetFocusedItem()
+	isLink := elem.Info != nil && elem.Info.Mode()&os.ModeSymlink != 0
+	iconStyle := common.GetElementIcon(elem.Name, elem.Directory && !isLink, isLink, common.Config.Nerdfont)
+	prefix := common.FilePanelCursorStyle.Render(emptyCursor+" ") + m.renderSelectBox(m.CheckSelected(elem.Location))
+	if common.SuffixMode == common.SuffixLeft {
+		extWidth, _ := m.visibleSuffixLayout()
+		prefix += common.ModalStyle.Render(strings.Repeat(" ", extWidth+1))
+	}
+	return prefix + common.StringColorRender(lipgloss.Color(iconStyle.Color), common.ModalBGColor).
+		Background(common.ModalBGColor).Render(iconStyle.Icon+"  ")
+}
+
 func (m *Model) renderRenameInput() string {
+	prefix := m.renameInputPrefix()
+	m.Rename.SetWidth(max(1, m.GetContentWidth()-ansi.StringWidth(prefix)-1))
 	if !m.RenameSelected {
-		return m.Rename.View()
+		return prefix + m.Rename.View()
 	}
 	runes := []rune(m.Rename.Value())
 	end := min(m.RenameSelectEnd, len(runes))
-	return m.Rename.Prompt + common.RenameSelectionStyle.Render(string(runes[:end])) +
+	return prefix + common.RenameSelectionStyle.Render(string(runes[:end])) +
 		common.ModalStyle.Render(string(runes[end:]))
 }

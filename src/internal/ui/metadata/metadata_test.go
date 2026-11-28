@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/barasher/go-exiftool"
@@ -81,11 +82,12 @@ func TestDirectorySize(t *testing.T) {
 
 	focusedDir, err := GetMetadata(dirPath, true, nil).GetValue(keySize)
 	require.NoError(t, err)
-	assert.Equal(t, recursiveSize, focusedDir)
+	assert.True(t, strings.HasPrefix(focusedDir, recursiveSize+" / "), focusedDir)
+	assert.True(t, strings.HasSuffix(focusedDir, " (on disk)"), focusedDir)
 
 	for _, focused := range []bool{false, true} {
 		fileVal, err := GetMetadata(filePath, focused, nil).GetValue(keySize)
 		require.NoError(t, err)
-		assert.Equal(t, fileSize, fileVal)
+		assert.True(t, strings.HasPrefix(fileVal, fileSize+" / "), fileVal)
 	}
 }

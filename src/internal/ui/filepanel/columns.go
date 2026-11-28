@@ -1,42 +1,60 @@
 package filepanel
 
 import (
+	"image/color"
 	"os"
 	"strings"
 
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/x/ansi"
 
-	"github.com/yorukot/superfile/src/config/icon"
 	"github.com/yorukot/superfile/src/internal/common"
 )
+
+// rowBG returns the background of a row. The row of the cursor has a gently highlighted one.
+func (m *Model) rowBG(indexElement int) color.Color {
+	if indexElement == m.GetCursor() && !m.SearchBar.Focused() {
+		if highlighted := common.CursorRowBackground(); highlighted != nil {
+			return highlighted
+		}
+	}
+	return common.FilePanelBGColor
+}
 
 // The renderer for the mandatory first column in the file panel, with a name, a cursor, and a select option.
 func (m *Model) renderFileName(indexElement int, columnWidth int) string {
 	elem := m.GetElementAtIdx(indexElement)
 	isSelected := m.CheckSelected(elem.Location)
+	// The cursor row is marked by its background only
 	cursor := emptyCursor
-	if indexElement == m.GetCursor() && !m.SearchBar.Focused() {
-		cursor = icon.Cursor
-	}
 
 	selectBox := m.renderSelectBox(isSelected)
 
 	// Calculate the actual prefix width for proper alignment
 	prefixWidth := ansi.StringWidth(cursor+" ") + ansi.StringWidth(selectBox)
-	isLink := false
+	var mode os.FileMode
 	if elem.Info != nil {
-		isLink = elem.Info.Mode()&os.ModeSymlink != 0
+		mode = elem.Info.Mode()
+	}
+	if elem.Directory && mode&os.ModeSymlink == 0 {
+		mode |= os.ModeDir
+	}
+	extWidth, stemWidth := m.visibleSuffixLayout()
+	linkTarget := ""
+	if mode&os.ModeSymlink != 0 {
+		linkTarget, _ = os.Readlink(elem.Location)
 	}
 	renderedName := common.FilePanelItemRenderWithIcon(
 		elem.Name,
 		columnWidth-prefixWidth,
-		elem.Directory,
-		isLink,
+		mode,
 		isSelected,
-		common.FilePanelBGColor,
+		m.rowBG(indexElement),
+		extWidth,
+		stemWidth,
+		linkTarget,
 	)
-	return common.FilePanelCursorStyle.Render(cursor+" ") + selectBox + renderedName
+	return common.FilePanelCursorStyle.Background(m.rowBG(indexElement)).Render(cursor+" ") + selectBox + renderedName
 }
 
 // The renderer of delimiter spaces. It has a strict fixed size that depends only on the delimiter string.
@@ -46,7 +64,7 @@ func (m *Model) renderDelimiter(indexElement int, columnWidth int) string {
 		ColumnDelimiter,
 		columnWidth,
 		isSelected,
-		common.FilePanelBGColor,
+		m.rowBG(indexElement),
 		lipgloss.Left,
 	)
 }
@@ -62,7 +80,7 @@ func (m *Model) renderFileSize(indexElement int, columnWidth int) string {
 		sizeValue,
 		columnWidth,
 		isSelected,
-		common.FilePanelBGColor,
+		m.rowBG(indexElement),
 		lipgloss.Right,
 	)
 }
@@ -76,7 +94,7 @@ func (m *Model) renderModifyTime(indexElement int, columnWidth int) string {
 		modifyTime,
 		columnWidth,
 		isSelected,
-		common.FilePanelBGColor,
+		m.rowBG(indexElement),
 		lipgloss.Right,
 	)
 }
@@ -88,7 +106,7 @@ func (m *Model) renderPermissions(indexElement int, columnWidth int) string {
 		elem.Info.Mode().String(),
 		columnWidth,
 		isSelected,
-		common.FilePanelBGColor,
+		m.rowBG(indexElement),
 		lipgloss.Right,
 	)
 }
@@ -162,4 +180,25 @@ func (m *Model) makeColumns(columnThreshold int, fileNameRatio int) []columnDefi
 		}
 	}
 	return columns
+}
+
+// visibleSuffixLayout returns the widest suffix and the widest name without suffix
+// among the elements that are currently shown
+func (m *Model) visibleSuffixLayout() (int, int) {
+	extWidth, stemWidth := 0, 0
+	end := min(m.renderIndex+m.PanelElementHeight(), m.ElemCount())
+	for i := max(m.renderIndex, 0); i < end; i++ {
+		elem := m.element[i]
+		var mode os.FileMode
+		if elem.Info != nil {
+			mode = elem.Info.Mode()
+		}
+		if elem.Directory && mode&os.ModeSymlink == 0 {
+			mode |= os.ModeDir
+		}
+		extWidth = max(extWidth, common.SuffixWidth(elem.Name, mode))
+		stem, _ := common.SplitSuffix(elem.Name, mode)
+		stemWidth = max(stemWidth, ansi.StringWidth(stem))
+	}
+	return common.SuffixColumnWidth(extWidth), stemWidth
 }

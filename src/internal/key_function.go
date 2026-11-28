@@ -83,8 +83,12 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 		}
 
 	case slices.Contains(common.Hotkeys.NextFilePanel, msg):
-		if m.focusPanel == nonePanelFocus {
+		switch m.focusPanel {
+		case nonePanelFocus:
 			m.fileModel.NextFilePanel()
+		case processBarFocus, metadataFocus:
+			m.setRegionFocus(nonePanelFocus)
+		case sidebarFocus:
 		}
 
 	case slices.Contains(common.Hotkeys.PreviousFilePanel, msg):
@@ -123,10 +127,10 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 		m.focusOnSideBar()
 
 	case slices.Contains(common.Hotkeys.FocusOnProcessBar, msg):
-		m.focusOnProcessBar()
+		return m.focusOnProcessBar()
 
 	case slices.Contains(common.Hotkeys.FocusOnMetaData, msg):
-		m.focusOnMetadata()
+		return m.focusOnMetadata()
 
 	case slices.Contains(common.Hotkeys.PasteItems, msg):
 		return m.getPasteItemCmd()
@@ -144,6 +148,13 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 
 	case slices.Contains(common.Hotkeys.ToggleDotFile, msg):
 		m.toggleDotFileController()
+
+	case slices.Contains(common.Hotkeys.CreateSymlink, msg):
+		m.startSymlink()
+
+	case slices.Contains(common.Hotkeys.ToggleSuffixes, msg):
+		common.CycleSuffixMode()
+		saveSuffixMode()
 
 	case slices.Contains(common.Hotkeys.ToggleFooter, msg):
 		return m.toggleFooterController()
@@ -245,7 +256,27 @@ func (m *model) filePanelSelectionKey(msg string) bool {
 	return true
 }
 
+// metadataKey selects a permission bit with the left and right keys, and toggles it with space
+func (m *model) metadataKey(msg string) {
+	switch {
+	case msg == "left":
+		m.fileMetaData.MovePermissionSelection(-1)
+	case msg == "right":
+		m.fileMetaData.MovePermissionSelection(1)
+	case isSpaceKey(msg):
+		if _, err := m.fileMetaData.TogglePermission(); err != nil {
+			slog.Error("Error while toggling permission", "error", err)
+		}
+		// Reload the file panels, so that colors and permission columns reflect the change
+		m.fileModel.UpdateFilePanelsIfNeeded(true)
+	}
+}
+
 func (m *model) unfocusedFilePanelKey(msg string) {
+	if m.focusPanel == metadataFocus {
+		m.metadataKey(msg)
+		return
+	}
 	if m.focusPanel != sidebarFocus {
 		return
 	}
@@ -271,6 +302,9 @@ func (m *model) filePanelSelectModeKey(msg string) tea.Cmd {
 	case slices.Contains(common.Hotkeys.ParentDirectory, msg):
 		panel.ResetSelected()
 		m.parentDirectory()
+	case slices.Contains(common.Hotkeys.HomeDirectory, msg):
+		panel.ResetSelected()
+		m.homeDirectory()
 	case slices.Contains(common.Hotkeys.FilePanelSelectModeItemsSelectUp, msg):
 		panel.ItemSelectUp()
 	case slices.Contains(common.Hotkeys.FilePanelSelectModeItemsSelectDown, msg):
@@ -304,6 +338,8 @@ func (m *model) filePanelNormalModeKey(msg string) tea.Cmd {
 		m.enterPanel()
 	case slices.Contains(common.Hotkeys.ParentDirectory, msg):
 		m.parentDirectory()
+	case slices.Contains(common.Hotkeys.HomeDirectory, msg):
+		m.homeDirectory()
 	case slices.Contains(common.Hotkeys.DeleteItems, msg):
 		return m.getDeleteTriggerCmd(false)
 	case slices.Contains(common.Hotkeys.PermanentlyDeleteItems, msg):
@@ -349,7 +385,14 @@ func isSpaceKey(msg string) bool {
 	return msg == "space" || msg == " "
 }
 
+func isCancelKey(msg string) bool {
+	return slices.Contains(common.Hotkeys.CancelTyping, msg) || slices.Contains(common.Hotkeys.QuitKeys(), msg)
+}
+
 func (m *model) notifyModelOpenKey(msg string) tea.Cmd {
+	if m.notifyModel.GetConfirmAction() == notify.SymlinkAction {
+		return m.symlinkChoiceKey(msg)
+	}
 	isCancel := slices.Contains(common.Hotkeys.CancelTyping, msg) || slices.Contains(common.Hotkeys.QuitKeys(), msg)
 	isConfirm := slices.Contains(common.Hotkeys.ConfirmTyping, msg) || isSpaceKey(msg)
 
@@ -377,7 +420,7 @@ func (m *model) handleNotifyModelCancel(action notify.ConfirmActionType) tea.Cmd
 		return m.reopenBulkRenameEditor()
 	case notify.QuitAction:
 		m.modelQuitState = notQuitting
-	case notify.DeleteAction, notify.NoAction, notify.PermanentDeleteAction:
+	case notify.DeleteAction, notify.NoAction, notify.PermanentDeleteAction, notify.SymlinkAction:
 		// Do nothing
 	default:
 		slog.Error("Unknown type of action", "action", action)
@@ -401,7 +444,7 @@ func (m *model) handleNotifyModelConfirm(action notify.ConfirmActionType) tea.Cm
 		return m.reopenBulkRenameEditor()
 	case notify.QuitAction:
 		m.modelQuitState = quitConfirmationReceived
-	case notify.NoAction:
+	case notify.NoAction, notify.SymlinkAction:
 		// Ignore
 	default:
 		slog.Error("Unknown type of action", "action", action)

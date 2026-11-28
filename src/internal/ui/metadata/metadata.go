@@ -9,8 +9,6 @@ import (
 
 	"github.com/barasher/go-exiftool"
 
-	"github.com/yorukot/superfile/src/pkg/utils"
-
 	"github.com/yorukot/superfile/src/internal/common"
 )
 
@@ -19,6 +17,10 @@ type Metadata struct {
 	data     [][2]string
 	infoMsg  string
 	filepath string
+
+	// Raw mode, to allow rendering permissions in different formats
+	mode    os.FileMode
+	hasMode bool
 }
 
 func NewMetadata(data [][2]string, filepath string, infoMsg string) Metadata {
@@ -85,12 +87,12 @@ func getSymLinkMetaData(filePath string) Metadata {
 	res := Metadata{
 		filepath: filePath,
 	}
-	linkPath, symlinkErr := filepath.EvalSymlinks(filePath)
-	if symlinkErr != nil {
+	// The target is shown as stored in the link, without resolving it
+	linkTarget, readErr := os.Readlink(filePath)
+	if _, resolveErr := filepath.EvalSymlinks(filePath); readErr != nil || resolveErr != nil {
 		res.infoMsg = linkFileBrokenMsg
 	} else {
-		path := [2]string{keyPath, linkPath}
-		res.data = append(res.data, path)
+		res.data = append(res.data, [2]string{keySymlink, linkTarget})
 	}
 	return res
 }
@@ -112,23 +114,29 @@ func getMetaDataUnsorted(filePath string, metadataFocused bool, et *exiftool.Exi
 	// Note : we prioritize these while sorting Metadata
 	name := [2]string{keyName, fileInfo.Name()}
 	// stat size of a directory inode is not the size of its contents
-	size := [2]string{keySize, common.FormatFileSize(fileInfo.Size())}
+	size := [2]string{keySize, formatSizes(fileInfo.Size(), getSizeOnDisk(fileInfo))}
 	if fileInfo.IsDir() {
 		size = [2]string{keySize, dirSizeUnfocusedMsg}
 	}
 	modifyDate := [2]string{keyDataModified, fileInfo.ModTime().String()}
-	permissions := [2]string{keyPermissions, fileInfo.Mode().String()}
+	permissions := [2]string{keyPermissions, formatPermissions(fileInfo.Mode())}
 	ownerVal, groupVal := getOwnerAndGroup(fileInfo)
-	owner := [2]string{keyOwner, ownerVal}
-	group := [2]string{keyGroup, groupVal}
+	ownerGroup := [2]string{keyOwnerGroup, ownerVal + " / " + groupVal}
 
 	if fileInfo.IsDir() && metadataFocused {
 		// TODO : Calling dirSize() could be expensive for large directories, as it recursively
 		// walks the entire tree. For now we have async approach of loading metadata,
 		// and its only loaded when metadata panel is focused.
-		size = [2]string{keySize, common.FormatFileSize(utils.DirSize(filePath))}
+		usage := DiskUsage([]string{filePath})
+		size = [2]string{keySize, formatSizes(usage.Apparent, usage.Disk)}
 	}
-	res.data = append(res.data, name, size, modifyDate, permissions, owner, group)
+	res.data = append(res.data, name, size, modifyDate, permissions, ownerGroup)
+	res.mode = fileInfo.Mode()
+	res.hasMode = true
+
+	if fileType, ok := getFileType(filePath); ok {
+		res.data = append(res.data, [2]string{keyFileType, fileType})
+	}
 
 	if attrVal, ok := getFileAttributes(filePath); ok {
 		attrs := [2]string{keyAttributes, attrVal}

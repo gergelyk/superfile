@@ -1,6 +1,8 @@
 package notify
 
 import (
+	"charm.land/lipgloss/v2"
+
 	"github.com/yorukot/superfile/src/internal/common"
 )
 
@@ -47,9 +49,15 @@ func (m *Model) GetConfirmAction() ConfirmActionType {
 // TODO: Remove code duplication with typineModalRender
 func (m *Model) Render() string {
 	var inputKeysText string
-	if m.confirmAction == NoAction || m.confirmAction == BulkRenameRetryAction {
+	switch m.confirmAction { //nolint:exhaustive // other actions share the default buttons
+	case SymlinkAction:
+		// Three buttons need a narrower gap than the default to fit in one line
+		gap := lipgloss.NewStyle().Background(common.ModalBGColor).Render("  ")
+		inputKeysText = common.ModalConfirm.Render(" (r) Relative ") + gap +
+			common.ModalConfirm.Render(" (a) Absolute ") + gap + common.ModalCancelInputText
+	case NoAction, BulkRenameRetryAction:
 		inputKeysText = common.ModalOkayInputText
-	} else {
+	default:
 		inputKeysText = common.ModalConfirmInputText + common.ModalInputSpacingText + common.ModalCancelInputText
 	}
 	return common.ModalBorderStyle(common.ModalHeight, common.ModalWidth).

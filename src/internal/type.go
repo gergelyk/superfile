@@ -67,6 +67,7 @@ type model struct {
 	bulkRename      *bulkRenameState
 	regexRename     *regexRenameState
 	pendingTransfer *pendingTransfer
+	pendingSymlink  string
 	typingModal     typingModal
 	helpMenu        helpmenu.Model
 	promptModal     prompt.Model
@@ -89,6 +90,7 @@ type model struct {
 	modelQuitState       modelQuitStateType
 	firstTextInput       bool
 	toggleFooter         bool
+	footerPeek           bool // footer is shown only until the focus leaves it
 	firstLoadingComplete bool
 	firstUse             bool
 

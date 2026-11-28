@@ -341,3 +341,21 @@ func TestFileDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestCreateSymlink(t *testing.T) {
+	root := t.TempDir()
+	src := filepath.Join(root, "src", "data")
+	dst := filepath.Join(root, "dst")
+	require.NoError(t, os.MkdirAll(src, 0o755))
+	require.NoError(t, os.MkdirAll(dst, 0o755))
+
+	require.NoError(t, createSymlink(src, dst, true))
+	got, err := os.Readlink(filepath.Join(dst, "data"))
+	require.NoError(t, err)
+	assert.Equal(t, filepath.Join("..", "src", "data"), got)
+
+	require.NoError(t, createSymlink(src, dst, false))
+	got, err = os.Readlink(filepath.Join(dst, "data-1"))
+	require.NoError(t, err)
+	assert.Equal(t, src, got)
+}

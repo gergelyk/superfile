@@ -39,6 +39,12 @@ file_panel_top_directory_icon = "#a6e3a1"
 file_panel_top_path = "#89b5fa"
 file_panel_item_selected_fg = "#98D0FD"
 file_panel_item_selected_bg = "#1e1e2e"
+# File name colors by type. Empty value uses a built-in default (file_panel_fg for regular files).
+file_panel_dir_fg = "#89b4fa"
+file_panel_symlink_fg = "#94e2d5"
+file_panel_special_file_fg = "#f9e2af"
+file_panel_executable_fg = "#a6e3a1"
+file_panel_file_fg = ""
 
 #-- Footer
 footer_fg = "#a6adc8"

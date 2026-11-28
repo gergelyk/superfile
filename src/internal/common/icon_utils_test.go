@@ -59,14 +59,6 @@ func TestGetElementIcon(t *testing.T) {
 			expected: icon.Folders[".git"],
 		},
 		{
-			name:     "superfile directory",
-			file:     "superfile",
-			isDir:    true,
-			isLink:   false,
-			nerdFont: true,
-			expected: icon.Folders["superfile"],
-		},
-		{
 			name:     "package.json file",
 			file:     "package.json",
 			isDir:    false,

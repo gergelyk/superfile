@@ -81,34 +81,70 @@ func TruncateMiddleText(text string, maxChars int, tails string) string {
 func FilePanelItemRenderWithIcon(
 	name string,
 	width int,
-	isDir bool,
-	isLink bool,
+	mode os.FileMode,
 	isSelected bool,
 	bgColor color.Color,
+	extWidth int,
+	stemWidth int,
+	linkTarget string,
 ) string {
-	style := GetElementIcon(name, isDir, isLink, Config.Nerdfont)
-	iconData := style.Icon + " "
-	filenameWidth := width - ansi.StringWidth(iconData)
+	isLink := mode&os.ModeSymlink != 0
+	style := GetElementIcon(name, mode.IsDir(), isLink, Config.Nerdfont)
+	iconData := style.Icon + "  "
+	nameStyle := FileNameStyle(mode, isSelected)
+	suffixColumn := RenderSuffixColumn(name, nameStyle, bgColor, mode, extWidth)
+	if ansi.StringWidth(suffixColumn)+ansi.StringWidth(iconData) >= width {
+		suffixColumn = ""
+	}
+	filenameWidth := width - ansi.StringWidth(suffixColumn) - ansi.StringWidth(iconData)
 	if filenameWidth <= 0 {
 		// This should never happen, unless there is extremely low size or programming bug
 		slog.Debug("Too low width for rendering file name", "width", width, "filenameWidth", filenameWidth)
 		return ""
 	}
-	return StringColorRender(lipgloss.Color(style.Color), bgColor).
-		Background(bgColor).Render(iconData) +
-		FilePanelItemRender(name, filenameWidth, isSelected, bgColor, lipgloss.Left)
+	renderedName := RenderFileName(name, filenameWidth, nameStyle, bgColor, mode, extWidth, stemWidth)
+	if linkTarget != "" {
+		renderedName = renderSymlinkName(name, linkTarget, filenameWidth, nameStyle, bgColor, mode)
+	}
+	return suffixColumn + StringColorRender(lipgloss.Color(style.Color), bgColor).
+		Background(bgColor).Render(iconData) + renderedName
 }
+
+// renderSymlinkName renders the name of a symlink followed by a dimmed "-> target", if there is room for it
+func renderSymlinkName(
+	name string, target string, width int, style lipgloss.Style, bgColor color.Color, mode os.FileMode,
+) string {
+	nameWidth := min(ansi.StringWidth(name), width)
+	rendered := RenderFileName(name, nameWidth, style, bgColor, mode, 0, 0)
+	remaining := width - nameWidth
+	base := style.Background(bgColor)
+	if remaining == 0 {
+		return rendered
+	}
+	dim := dimStyle(base, style.GetForeground(), bgColor)
+	return rendered + dim.Width(remaining).Render(ansi.Truncate(" -> "+target, remaining, "..."))
+}
+
 func FilePanelItemRender(data string,
 	width int,
 	isSelected bool,
 	bgColor color.Color,
 	alignment lipgloss.Position,
 ) string {
-	outputData := ansi.Truncate(data, width, "...")
 	style := FilePanelStyle
 	if isSelected {
 		style = FilePanelItemSelectedStyle
 	}
+	return filePanelItemRenderStyled(data, width, style, bgColor, alignment)
+}
+
+func filePanelItemRenderStyled(data string,
+	width int,
+	style lipgloss.Style,
+	bgColor color.Color,
+	alignment lipgloss.Position,
+) string {
+	outputData := ansi.Truncate(data, width, "...")
 	return style.Background(bgColor).Width(width).Align(alignment).Render(outputData)
 }
 

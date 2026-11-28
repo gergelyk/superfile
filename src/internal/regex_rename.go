@@ -257,7 +257,8 @@ func (st *regexRenameState) render(maxWidth int) (string, int, int) {
 	}
 
 	height := len(lines)
-	bottom := common.GenerateFooterBorder(fmt.Sprintf("%d items", len(st.paths)), width-common.BorderPadding)
+	bottom := common.GenerateFooterBorder(
+		fmt.Sprintf("Tab: Case/Regex | %d items", len(st.paths)), width-common.BorderPadding)
 	out := common.ModalBorderStyleWithEdges(height, width, st.topBorder(width-common.BorderPadding), bottom).Render(strings.Join(lines, "\n"))
 	return out, width, lipgloss.Height(out)
 }

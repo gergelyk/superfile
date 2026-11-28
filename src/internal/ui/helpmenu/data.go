@@ -181,6 +181,11 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 			hotkeyWorkType: globalType,
 		},
 		{
+			hotkey:         common.Hotkeys.HomeDirectory,
+			description:    "Go to the home folder",
+			hotkeyWorkType: globalType,
+		},
+		{
 			hotkey:         common.Hotkeys.FilePanelSelectAllItem,
 			description:    "Select all items in focused file panel",
 			hotkeyWorkType: globalType,
@@ -208,6 +213,16 @@ func getData() []hotkeydata { //nolint: funlen // This should be self contained
 		{
 			hotkey:         common.Hotkeys.ToggleDotFile,
 			description:    "Toggle dot file display",
+			hotkeyWorkType: globalType,
+		},
+		{
+			hotkey:         common.Hotkeys.CreateSymlink,
+			description:    "Create symlink to the directory in the clipboard",
+			hotkeyWorkType: globalType,
+		},
+		{
+			hotkey:         common.Hotkeys.ToggleSuffixes,
+			description:    "Cycle file suffix display: left column, at the end, right column, hidden",
 			hotkeyWorkType: globalType,
 		},
 		{

@@ -166,7 +166,8 @@ func GenerateNewFileTextInput() textinput.Model {
 
 func GenerateRenameTextInput(width int, cursorPos int, defaultValue string) textinput.Model {
 	ti := textinput.New()
-	ti.Prompt = FilePanelCursorStyle.Render(icon.Cursor + " ")
+	// The file panel draws the part before the text, to keep the name where it was
+	ti.Prompt = ""
 	ti.Placeholder = "New name"
 	setTextInputStyles(&ti, ModalStyle, ModalStyle)
 	ti.SetValue(defaultValue)

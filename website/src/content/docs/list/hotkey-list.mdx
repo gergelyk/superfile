@@ -64,12 +64,14 @@ Quit superfile and cd to current folder "cd_quit" requires the same setup as ["c
 | Page up                                            | `pgup`                      | `page_up`                                                        |
 | Page down                                          | `pgdown`                    | `page_down`                                                      |
 | Return to parent folder                            | `h`, `left`, `backspace`    | `parent_directory`                                               |
+| Go to the home folder                              | `~`                            | `home_directory`                                                 |
 | Select all items in focused file panel             | `A` (shift+a)               | `file_panel_select_all_items`                                     |
 | Toggle selection of item under cursor              | `space`                     | `file_panel_toggle_select_item`                                  |
 | Toggle selection of item under cursor and move to the next item | `insert`                    | `file_panel_toggle_select_item_next`                            |
 | Select up from your cursor                         | `shift+up`, `K` (shift+k)   | `file_panel_select_mode_items_select_up` (selection mode only)   |
 | Select down from your cursor                       | `shift+down`, `J` (shift+j) | `file_panel_select_mode_items_select_down` (selection mode only) |
 | Toggle dot file display                            | `.`                         | `toggle_dot_file`                                                |
+| Toggle file suffix display                         | `,`                         | `toggle_suffixes`                                                |
 | Toggle active search bar                           | `/`                         | `search_bar`                                                     |
 | Pin or Unpin folder to sidebar (can be auto saved) | `P` (shift+p)               | `pinned_directory`                                               |
 
@@ -83,6 +85,7 @@ Quit superfile and cd to current folder "cd_quit" requires the same setup as ["c
 | Copy selected items to the clipboard                  | `ctrl+c`           | `copy_items`                                       |
 | Cut selected items to the clipboard                   | `ctrl+x`           | `cut_items`                                        |
 | Paste clipboard items into the current file panel     | `ctrl+v`, `ctrl+w` | `paste_items`                                      |
+| Create symlink to the directory in clipboard          | `ctrl+s`           | `create_symlink`                                      |
 | Copy selected items to file panel N (1-9, 0 for the 10th) | `1`-`9`, `0` | Not configurable                          |
 | Move selected items to file panel N (US layout)       | `shift+1`-`shift+9`, `shift+0` (`!@#$%^&*()`) | Not configurable           |
 | Delete selected items                                 | `ctrl+d`, `delete` | `delete_items`                                     |

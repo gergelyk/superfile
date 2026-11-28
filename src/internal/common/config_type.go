@@ -48,6 +48,14 @@ type ThemeType struct {
 	FilePanelItemSelectedFG   string `toml:"file_panel_item_selected_fg"`
 	FilePanelItemSelectedBG   string `toml:"file_panel_item_selected_bg"`
 
+	// File name colors by file type. Empty values fall back to built-in defaults
+	// (file_panel_fg for FilePanelFileFG).
+	FilePanelDirFG         string `toml:"file_panel_dir_fg"`
+	FilePanelSymlinkFG     string `toml:"file_panel_symlink_fg"`
+	FilePanelSpecialFileFG string `toml:"file_panel_special_file_fg"`
+	FilePanelExecutableFG  string `toml:"file_panel_executable_fg"`
+	FilePanelFileFG        string `toml:"file_panel_file_fg"`
+
 	// Sidebar Special Items
 	SidebarTitle          string `toml:"sidebar_title"`
 	SidebarItemSelectedFG string `toml:"sidebar_item_selected_fg"`
@@ -184,6 +192,8 @@ type HotkeysType struct {
 
 	PinnedDirectory []string `toml:"pinned_directory"  comment:"other"`
 	ToggleDotFile   []string `toml:"toggle_dot_file"`
+	CreateSymlink   []string `toml:"create_symlink"`
+	ToggleSuffixes  []string `toml:"toggle_suffixes"`
 	OpenHelpMenu    []string `toml:"open_help_menu"`
 	OpenCommandLine []string `toml:"open_command_line"`
 	OpenSPFPrompt   []string `toml:"open_spf_prompt"`
@@ -198,6 +208,7 @@ type HotkeysType struct {
 	CancelTyping  []string `toml:"cancel_typing"`
 
 	ParentDirectory []string `toml:"parent_directory" comment:"=================================================================================================\nNormal mode hotkeys (can conflict with other modes, cannot conflict with global hotkeys)"`
+	HomeDirectory   []string `toml:"home_directory"`
 	SearchBar       []string `toml:"search_bar"`
 
 	FilePanelSelectModeItemsSelectDown []string `toml:"file_panel_select_mode_items_select_down" comment:"=================================================================================================\nSelect mode hotkeys (can conflict with other modes, cannot conflict with global hotkeys)"`

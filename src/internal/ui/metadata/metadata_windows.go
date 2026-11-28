@@ -41,3 +41,8 @@ func getFileAttributes(path string) (string, bool) {
 	}
 	return result, true
 }
+
+// Allocated size is not available through os.FileInfo on Windows
+func getSizeOnDisk(fileInfo os.FileInfo) int64 {
+	return fileInfo.Size()
+}

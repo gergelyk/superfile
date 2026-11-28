@@ -25,6 +25,13 @@ func (m *model) parentDirectory() {
 	}
 }
 
+// Go to the home directory
+func (m *model) homeDirectory() {
+	if err := m.updateCurrentFilePanelDir(variable.HomeDir); err != nil {
+		slog.Error("Error while changing to home directory", "error", err)
+	}
+}
+
 // enterPanel enters a directory, opens a file with default application, or writes
 // selected/focused paths to the chooser file and exits if --chooser-file mode is enabled.
 func (m *model) enterPanel() {
@@ -148,6 +155,7 @@ func (m *model) toggleDotFileController() {
 
 // Toggle dotfile display or not
 func (m *model) toggleFooterController() tea.Cmd {
+	m.footerPeek = false
 	m.toggleFooter = !m.toggleFooter
 	err := utils.WriteBoolFile(variable.ToggleFooter, m.toggleFooter)
 	if err != nil {
