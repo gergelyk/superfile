@@ -533,7 +533,14 @@ func (m *model) applyShellCommandAction(shellCommand string) {
 // through here, otherwise the sidebar (or processbar/metadata) can stay focused
 // next to the new panel and both react to keys. See #1497.
 func (m *model) createNewFilePanel(location string) (tea.Cmd, error) {
-	cmd, err := m.fileModel.CreateNewFilePanel(location)
+	return m.focusNewPanel(m.fileModel.CreateNewFilePanel(location))
+}
+
+func (m *model) createNewFilePanelAfterCurrent(location string) (tea.Cmd, error) {
+	return m.focusNewPanel(m.fileModel.CreateNewFilePanelAfterCurrent(location))
+}
+
+func (m *model) focusNewPanel(cmd tea.Cmd, err error) (tea.Cmd, error) {
 	if err != nil {
 		return cmd, err
 	}

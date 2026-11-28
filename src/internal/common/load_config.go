@@ -128,7 +128,9 @@ func validateBorders(c *ConfigType) error {
 
 // Load keybinds from the hotkeys file. Compares the content
 // with the default values and modify the hotkeys if the FixHotkeys flag is on.
-func LoadHotkeysFile(ignoreMissingFields bool) {
+// Missing hotkeys silently keep their defaults, unless the FixHotkeys flag is on.
+func LoadHotkeysFile(_ bool) {
+	ignoreMissingFields := true
 	err := utils.LoadTomlFile(
 		variable.HotkeysFile,
 		HotkeysTomlString,

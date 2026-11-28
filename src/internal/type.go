@@ -67,7 +67,7 @@ type model struct {
 	bulkRename      *bulkRenameState
 	regexRename     *regexRenameState
 	pendingTransfer *pendingTransfer
-	pendingSymlink  string
+	pendingSymlinks []string
 	typingModal     typingModal
 	helpMenu        helpmenu.Model
 	promptModal     prompt.Model

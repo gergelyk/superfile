@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"slices"
 
 	tea "charm.land/bubbletea/v2"
 
@@ -43,6 +44,15 @@ func (m *Model) OpenDirInAdjacentPanel(delta int, location string) (tea.Cmd, err
 }
 
 func (m *Model) CreateNewFilePanel(location string) (tea.Cmd, error) {
+	return m.createFilePanelAt(location, m.PanelCount())
+}
+
+// Create a new panel right after the focused one
+func (m *Model) CreateNewFilePanelAfterCurrent(location string) (tea.Cmd, error) {
+	return m.createFilePanelAt(location, m.FocusedPanelIndex+1)
+}
+
+func (m *Model) createFilePanelAt(location string, index int) (tea.Cmd, error) {
 	if m.PanelCount() >= m.MaxFilePanel {
 		return nil, ErrMaximumPanelCount
 	}
@@ -51,11 +61,12 @@ func (m *Model) CreateNewFilePanel(location string) (tea.Cmd, error) {
 		return nil, fmt.Errorf("cannot access location : %s", location)
 	}
 
-	m.FilePanels = append(m.FilePanels, filepanel.New(
+	newPanel := filepanel.New(
 		location, false, "", m.GetFocusedFilePanel().SortKind,
-		m.GetFocusedFilePanel().SortReversed))
+		m.GetFocusedFilePanel().SortReversed)
+	m.FilePanels = slices.Insert(m.FilePanels, index, newPanel)
 
-	newPanelIndex := m.PanelCount() - 1
+	newPanelIndex := index
 
 	m.FilePanels[newPanelIndex].SetHeight(m.Height)
 	m.FilePanels[m.FocusedPanelIndex].IsFocused = false

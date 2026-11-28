@@ -16,20 +16,19 @@ const (
 	symlinkAbsoluteKey = "a"
 )
 
-// startSymlink asks how to link when the clipboard has exactly one directory
+// startSymlink asks how to link the items in the clipboard
 func (m *model) startSymlink() {
 	items := m.clipboard.PruneInaccessibleItemsAndGet()
-	if len(items) != 1 {
-		m.showNotify("Cannot create symlink", "The clipboard must contain exactly one directory.", notify.NoAction)
+	if len(items) == 0 {
+		m.showNotify("Cannot create symlink", "The clipboard is empty.", notify.NoAction)
 		return
 	}
-	info, err := os.Stat(items[0])
-	if err != nil || !info.IsDir() {
-		m.showNotify("Cannot create symlink", "The clipboard must contain exactly one directory.", notify.NoAction)
-		return
+	m.pendingSymlinks = items
+	title := "Create symlink to " + filepath.Base(items[0])
+	if len(items) > 1 {
+		title = fmt.Sprintf("Create %d symlinks", len(items))
 	}
-	m.pendingSymlink = items[0]
-	m.showNotify("Create symlink to "+filepath.Base(items[0]),
+	m.showNotify(title,
 		"In: "+m.getFocusedFilePanel().Location+"\nShould the link use a relative or an absolute path?",
 		notify.SymlinkAction)
 }
@@ -45,23 +44,28 @@ func (m *model) symlinkChoiceKey(msg string) tea.Cmd {
 		m.createPendingSymlink(false)
 	case isCancelKey(msg):
 		m.notifyModel.Close()
-		m.pendingSymlink = ""
+		m.pendingSymlinks = nil
 	}
 	return nil
 }
 
 func (m *model) createPendingSymlink(relative bool) {
-	source := m.pendingSymlink
-	m.pendingSymlink = ""
+	sources := m.pendingSymlinks
+	m.pendingSymlinks = nil
 	dir := m.getFocusedFilePanel().Location
-	if err := createSymlink(source, dir, relative); err != nil {
-		m.showNotify("Cannot create symlink", err.Error(), notify.NoAction)
-		return
+	var errs []error
+	for _, source := range sources {
+		if err := createSymlink(source, dir, relative); err != nil {
+			errs = append(errs, err)
+		}
 	}
 	m.fileModel.UpdateFilePanelsIfNeeded(true)
+	if err := errors.Join(errs...); err != nil {
+		m.showNotify("Cannot create symlink", err.Error(), notify.NoAction)
+	}
 }
 
-// createSymlink creates a link to the directory source inside dir, and does not overwrite anything
+// createSymlink creates a link to source inside dir, and does not overwrite anything
 func createSymlink(source string, dir string, relative bool) error {
 	source, err := filepath.Abs(source)
 	if err != nil {

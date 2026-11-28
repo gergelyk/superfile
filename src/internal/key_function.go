@@ -15,8 +15,6 @@ import (
 	"github.com/yorukot/superfile/src/internal/ui/notify"
 
 	tea "charm.land/bubbletea/v2"
-
-	variable "github.com/yorukot/superfile/src/config"
 )
 
 // mainKey handles most of key commands in the regular state of the application. For
@@ -103,7 +101,7 @@ func (m *model) mainKey(msg string) tea.Cmd { //nolint: gocyclo,cyclop,funlen,go
 		}
 		return cmd
 	case slices.Contains(common.Hotkeys.CreateNewFilePanel, msg):
-		cmd, err := m.createNewFilePanel(variable.HomeDir)
+		cmd, err := m.createNewFilePanelAfterCurrent(m.getFocusedFilePanel().Location)
 		if err != nil && !errors.Is(err, filemodel.ErrMaximumPanelCount) {
 			slog.Error("unexpected error while creating new panel", "error", err)
 		}

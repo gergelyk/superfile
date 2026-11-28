@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	CurrentVersion = "v1.7.1-gergelyk.1"
+	CurrentVersion = "v1.7.1-gergelyk.5"
 	// Allowing pre-releases with non production version
 	// Set this to "" for production releases
 	PreReleaseSuffix = ""
